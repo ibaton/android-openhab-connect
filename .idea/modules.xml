@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/OHCommunicator.iml" filepath="$PROJECT_DIR$/OHCommunicator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ohcommunicator/ohcommunicator.iml" filepath="$PROJECT_DIR$/ohcommunicator/ohcommunicator.iml" />
+    </modules>
+  </component>
+</project>
