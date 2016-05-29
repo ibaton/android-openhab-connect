@@ -17,6 +17,7 @@ import org.atmosphere.wasync.Decoder;
 import org.atmosphere.wasync.Event;
 import org.atmosphere.wasync.Function;
 import org.atmosphere.wasync.OptionsBuilder;
+import org.atmosphere.wasync.Request;
 import org.atmosphere.wasync.RequestBuilder;
 import org.atmosphere.wasync.Socket;
 import org.atmosphere.wasync.impl.AtmosphereClient;
@@ -379,7 +380,7 @@ public class Connector {
         private static class OHPageDecoder implements Decoder<String, OHLinkedPage> {
             @Override
             public OHLinkedPage decode(Event event, String s) {
-                Log.d(TAG, "wasync Decoder " + s);
+                Log.d(TAG, "wasync Decoder " + event + " " + s);
                 if(Event.MESSAGE == event) {
                     Gson gson = GsonHelper.createGsonBuilder();
                     return gson.fromJson(s, OHLinkedPage.class);
