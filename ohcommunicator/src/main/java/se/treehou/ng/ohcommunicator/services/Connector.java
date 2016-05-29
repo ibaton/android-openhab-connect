@@ -381,7 +381,7 @@ public class Connector {
             @Override
             public OHLinkedPage decode(Event event, String s) {
                 Log.d(TAG, "wasync Decoder " + event + " " + s);
-                if(Event.MESSAGE == event) {
+                if(Event.MESSAGE == event && !s.equals("Unauthorized")) {
                     Gson gson = GsonHelper.createGsonBuilder();
                     return gson.fromJson(s, OHLinkedPage.class);
                 }
