@@ -3,7 +3,6 @@ package se.treehou.ng.ohcommunicator.services;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -15,18 +14,15 @@ import com.ning.http.client.Realm;
 import org.atmosphere.wasync.Client;
 import org.atmosphere.wasync.ClientFactory;
 import org.atmosphere.wasync.Decoder;
-import org.atmosphere.wasync.Encoder;
 import org.atmosphere.wasync.Event;
 import org.atmosphere.wasync.Function;
 import org.atmosphere.wasync.OptionsBuilder;
 import org.atmosphere.wasync.Request;
 import org.atmosphere.wasync.RequestBuilder;
 import org.atmosphere.wasync.Socket;
+import org.atmosphere.wasync.impl.AtmosphereClient;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -145,95 +141,7 @@ public class Connector {
         }
 
         public AsyncTask<Void, Void, Void> requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
-            final Socket[] pollSocket = new Socket[1];
-            final AsyncHttpClient[] asyncHttpClient = new AsyncHttpClient[1];
-            return new AsyncTask<Void, Void, Void>() {
-
-                @Override
-                protected Void doInBackground(Void... params) {
-
-                    com.ning.http.client.Realm clientRealm = null;
-                    if (server.requiresAuth()) {
-                        clientRealm = new com.ning.http.client.Realm.RealmBuilder()
-                                .setPrincipal(server.getUsername())
-                                .setPassword(server.getPassword())
-                                .setUsePreemptiveAuth(true)
-                                .setScheme(com.ning.http.client.Realm.AuthScheme.BASIC)
-                                .build();
-                    }
-
-                    asyncHttpClient[0] = new AsyncHttpClient(
-                            new AsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true)
-                                    .setHostnameVerifier(new TrustModifier.NullHostNameVerifier())
-                                    .setRealm(clientRealm)
-                                    .build()
-                    );
-
-                    Client client = ClientFactory.getDefault().newClient();
-                    OptionsBuilder optBuilder = client.newOptionsBuilder().runtime(asyncHttpClient[0]);
-
-                    UUID atmosphereId = UUID.randomUUID();
-
-                    RequestBuilder request = client.newRequestBuilder()
-                            .method(org.atmosphere.wasync.Request.METHOD.GET)
-                            .uri(page.getLink())
-                            .header("Accept", "application/json")
-                            .header("Accept-Charset", "utf-8")
-                            .header("X-Atmosphere-Transport", "long-polling")
-                            .header("X-Atmosphere-tracking-id", atmosphereId.toString())
-                            .encoder(new Encoder<String, Reader>() {        // Stream the request body
-                                @Override
-                                public Reader encode(String s) {
-                                    Log.d(TAG, "wasync RequestBuilder encode");
-                                    return new StringReader(s);
-                                }
-                            })
-                            .decoder(new Decoder<String, OHLinkedPage>() {
-                                @Override
-                                public OHLinkedPage decode(Event e, String s) {
-                                    Log.d(TAG, "wasync Decoder " + s);
-                                    Gson gson = GsonHelper.createGsonBuilder();
-                                    return gson.fromJson(s, OHLinkedPage.class);
-                                }
-                            })
-                            .transport(org.atmosphere.wasync.Request.TRANSPORT.LONG_POLLING);                    // Fallback to Long-Polling
-
-                    if (server.requiresAuth()) {
-                        request.header(Constants.HEADER_AUTHENTICATION, ConnectorUtil.createAuthValue(server.getUsername(), server.getPassword()));
-                    }
-
-                    pollSocket[0] = client.create(optBuilder.build());
-                    try {
-                        Log.d(TAG, "wasync Socket " + pollSocket[0] + " " + request.uri());
-                        pollSocket[0].on(new Function<OHLinkedPage>() {
-                            @Override
-                            public void on(OHLinkedPage page) {
-                                Log.d(TAG, "wasync Socket received");
-                                callback.onUpdate(new OHResponse.Builder<>(page).build());
-                            }
-                        })
-                                .open(request.build());
-                    } catch (IOException | ExceptionInInitializerError e) {
-                        Log.d(TAG, "wasync Got error " + e);
-                    }
-
-                    Log.d(TAG, "wasync Poller started");
-
-                    return null;
-                }
-
-                @Override
-                protected void onCancelled() {
-                    super.onCancelled();
-
-                    if (pollSocket[0] != null) {
-                        pollSocket[0].close();
-                    }
-                    if (asyncHttpClient[0] != null) {
-                        asyncHttpClient[0].close();
-                    }
-                }
-            };
+            return new PageRequestAsyncTask(server, page, callback);
         }
 
         public void requestItem(final OHCallback<List<OHItem>> itemCallback){
@@ -467,6 +375,99 @@ public class Connector {
          */
         public Observable<List<OHSitemap>> requestSitemapObservable(){
              return getService().listSitemapsRx();
+        }
+
+        private static class OHPageDecoder implements Decoder<String, OHLinkedPage> {
+            @Override
+            public OHLinkedPage decode(Event event, String s) {
+                Log.d(TAG, "wasync Decoder " + event + " " + s);
+                if(Event.MESSAGE == event && !s.equals("Unauthorized")) {
+                    Gson gson = GsonHelper.createGsonBuilder();
+                    return gson.fromJson(s, OHLinkedPage.class);
+                }
+                return null;
+            }
+        }
+
+        private static class PageRequestAsyncTask extends AsyncTask<Void, Void, Void> {
+
+            private final OHServer server;
+            private AsyncHttpClient asyncHttpClient;
+            private final OHLinkedPage page;
+            private Socket socket;
+            private final OHCallback<OHLinkedPage> callback;
+
+            public PageRequestAsyncTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
+                this.server = server;
+                this.page = page;
+                this.callback = callback;
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+
+                com.ning.http.client.Realm clientRealm = null;
+                if (server.requiresAuth()) {
+                    clientRealm = new Realm.RealmBuilder()
+                            .setPrincipal(server.getUsername())
+                            .setPassword(server.getPassword())
+                            .setUsePreemptiveAuth(true)
+                            .setScheme(Realm.AuthScheme.BASIC)
+                            .build();
+                }
+
+                asyncHttpClient = new AsyncHttpClient(
+                        new AsyncHttpClientConfig.Builder()
+                                .setAcceptAnyCertificate(true)
+                                .setHostnameVerifier(new TrustModifier.NullHostNameVerifier())
+                                .setRealm(clientRealm)
+                                .build()
+                );
+
+                Client client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
+                OptionsBuilder optBuilder = client.newOptionsBuilder().runtime(asyncHttpClient);
+
+                UUID atmosphereId = UUID.randomUUID();
+                RequestBuilder request = client.newRequestBuilder()
+                        .method(org.atmosphere.wasync.Request.METHOD.GET)
+                        .uri(page.getLink())
+                        .header("Accept", "application/json")
+                        .header("Accept-Charset", "utf-8")
+                        .header("X-Atmosphere-Transport", "long-polling")
+                        .header("X-Atmosphere-tracking-id", atmosphereId.toString())
+                        .decoder(new OHPageDecoder())
+                        .transport(org.atmosphere.wasync.Request.TRANSPORT.LONG_POLLING);
+
+                socket = client.create(optBuilder.build());
+                socket.on(new Function<OHLinkedPage>() {
+                    @Override
+                    public void on(OHLinkedPage page) {
+                        Log.d(TAG, "wasync Socket received");
+                        callback.onUpdate(new OHResponse.Builder<>(page).build());
+                    }
+                });
+
+                Log.d(TAG, "wasync Socket " + socket + " " + request.uri());
+
+                try {
+                    socket.open(request.build());
+                } catch (IOException | ExceptionInInitializerError e) {
+                    Log.d(TAG, "wasync Got error " + e);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+
+                if (socket != null) {
+                    socket.close();
+                }
+                if (asyncHttpClient != null) {
+                    asyncHttpClient.close();
+                }
+            }
         }
     }
 }
