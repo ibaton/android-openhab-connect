@@ -19,6 +19,7 @@ import org.atmosphere.wasync.Function;
 import org.atmosphere.wasync.OptionsBuilder;
 import org.atmosphere.wasync.RequestBuilder;
 import org.atmosphere.wasync.Socket;
+import org.atmosphere.wasync.impl.AtmosphereClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -422,7 +423,7 @@ public class Connector {
                                 .build()
                 );
 
-                Client client = ClientFactory.getDefault().newClient();
+                Client client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
                 OptionsBuilder optBuilder = client.newOptionsBuilder().runtime(asyncHttpClient);
 
                 UUID atmosphereId = UUID.randomUUID();
