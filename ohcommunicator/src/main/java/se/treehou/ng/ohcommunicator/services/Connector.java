@@ -9,6 +9,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.Realm;
 
 import org.atmosphere.wasync.Client;
 import org.atmosphere.wasync.ClientFactory;
@@ -405,16 +406,17 @@ public class Connector {
 
                 com.ning.http.client.Realm clientRealm = null;
                 if (server.requiresAuth()) {
-                    clientRealm = new com.ning.http.client.Realm.RealmBuilder()
+                    clientRealm = new Realm.RealmBuilder()
                             .setPrincipal(server.getUsername())
                             .setPassword(server.getPassword())
                             .setUsePreemptiveAuth(true)
-                            .setScheme(com.ning.http.client.Realm.AuthScheme.BASIC)
+                            .setScheme(Realm.AuthScheme.BASIC)
                             .build();
                 }
 
                 asyncHttpClient = new AsyncHttpClient(
-                        new AsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true)
+                        new AsyncHttpClientConfig.Builder()
+                                .setAcceptAnyCertificate(true)
                                 .setHostnameVerifier(new TrustModifier.NullHostNameVerifier())
                                 .setRealm(clientRealm)
                                 .build()
@@ -433,11 +435,6 @@ public class Connector {
                         .header("X-Atmosphere-tracking-id", atmosphereId.toString())
                         .decoder(new OHPageDecoder())
                         .transport(org.atmosphere.wasync.Request.TRANSPORT.LONG_POLLING);
-
-                if (server.requiresAuth()) {
-                    String auth = ConnectorUtil.createAuthValue(server.getUsername(), server.getPassword());
-                    request.header(Constants.HEADER_AUTHENTICATION, auth);
-                }
 
                 socket = client.create(optBuilder.build());
                 socket.on(new Function<OHLinkedPage>() {
