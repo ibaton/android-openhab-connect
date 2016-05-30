@@ -89,7 +89,7 @@ public class OHServer {
     }
 
     public boolean requiresAuth() {
-        return TextUtils.isEmpty(username) && TextUtils.isEmpty(password);
+        return !TextUtils.isEmpty(username) && !TextUtils.isEmpty(password);
     }
 
     /**
