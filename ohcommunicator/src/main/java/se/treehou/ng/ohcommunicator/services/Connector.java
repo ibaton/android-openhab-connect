@@ -3,7 +3,7 @@ package se.treehou.ng.ohcommunicator.services;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
+import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -17,7 +17,6 @@ import org.atmosphere.wasync.Decoder;
 import org.atmosphere.wasync.Event;
 import org.atmosphere.wasync.Function;
 import org.atmosphere.wasync.OptionsBuilder;
-import org.atmosphere.wasync.Request;
 import org.atmosphere.wasync.RequestBuilder;
 import org.atmosphere.wasync.Socket;
 import org.atmosphere.wasync.impl.AtmosphereClient;
@@ -33,7 +32,6 @@ import retrofit2.Response;
 import rx.Observable;
 import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
 import se.treehou.ng.ohcommunicator.connector.ConnectorUtil;
-import se.treehou.ng.ohcommunicator.connector.Constants;
 import se.treehou.ng.ohcommunicator.connector.GsonHelper;
 import se.treehou.ng.ohcommunicator.connector.OpenHabService;
 import se.treehou.ng.ohcommunicator.connector.TrustModifier;
@@ -140,8 +138,11 @@ public class Connector {
 
         }
 
-        public AsyncTask<Void, Void, Void> requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
-            return new PageRequestAsyncTask(server, page, callback);
+        @WorkerThread
+        public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
+            PageRequestTask task = new PageRequestTask(server, page, callback);
+            task.start();
+            return task;
         }
 
         public void requestItem(final OHCallback<List<OHItem>> itemCallback){
@@ -389,7 +390,7 @@ public class Connector {
             }
         }
 
-        private static class PageRequestAsyncTask extends AsyncTask<Void, Void, Void> {
+        public static class PageRequestTask {
 
             private final OHServer server;
             private AsyncHttpClient asyncHttpClient;
@@ -397,14 +398,14 @@ public class Connector {
             private Socket socket;
             private final OHCallback<OHLinkedPage> callback;
 
-            public PageRequestAsyncTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
+            public PageRequestTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
                 this.server = server;
                 this.page = page;
                 this.callback = callback;
             }
 
-            @Override
-            protected Void doInBackground(Void... params) {
+            @WorkerThread
+            protected void start() {
 
                 com.ning.http.client.Realm clientRealm = null;
                 if (server.requiresAuth()) {
@@ -454,13 +455,9 @@ public class Connector {
                 } catch (IOException | ExceptionInInitializerError e) {
                     Log.d(TAG, "wasync Got error " + e);
                 }
-                return null;
             }
 
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-
+            public void stop() {
                 if (socket != null) {
                     socket.close();
                 }
