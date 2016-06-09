@@ -22,3 +22,6 @@
 -keep @io.realm.internal.Keep class * { *; }
 -dontwarn javax.**
 -dontwarn io.realm.**
+
+-dontwarn org.apache.http.**
+-dontwarn android.net.http.AndroidHttpClient
