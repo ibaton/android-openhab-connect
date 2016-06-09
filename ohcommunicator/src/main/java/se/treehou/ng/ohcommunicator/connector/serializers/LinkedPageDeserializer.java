@@ -43,8 +43,6 @@ public class LinkedPageDeserializer implements JsonDeserializer<OHLinkedPage> {
                 linkedPage.setLeaf(jObject.get("leaf").getAsBoolean());
             }
 
-            Log.d(TAG, "No problems go on " + jObject.has("widgets") + " " + jObject.isJsonObject());
-
             JsonElement jWidgets = null;
             if(jObject.has("widgets")) {
                 jWidgets = jObject.get("widgets");
