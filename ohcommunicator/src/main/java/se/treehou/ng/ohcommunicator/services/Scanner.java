@@ -75,7 +75,7 @@ public class Scanner {
 
                 final OHServer server = new OHServer();
                 server.setName(event.getName());
-                //server.setLocalUrl(serverUri.toString());
+                server.setLocalurl(serverUri.toString());
 
                 servers.add(server);
                 serverFound(servers);
