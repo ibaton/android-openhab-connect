@@ -20,6 +20,10 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
+import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
@@ -150,6 +154,41 @@ public class Scanner {
                     e.printStackTrace();
                 }
                 if (lock != null) lock.release();
+            }
+        });
+    }
+
+    /**
+     * Get rx listener for subscriber.
+     * @return rx zeroconf listener
+     */
+    public Observable<OHServer> registerRx(){
+        return Observable.create(new Observable.OnSubscribe<OHServer>() {
+            @Override
+            public void call(final Subscriber<? super OHServer> subscriber) {
+                if(subscriber.isUnsubscribed()){
+                    return;
+                }
+
+                final OHCallback<List<OHServer>> scannerCallback = new OHCallback<List<OHServer>>() {
+                    @Override
+                    public void onUpdate(OHResponse<List<OHServer>> items) {
+                        for(OHServer server : items.body()){
+                            subscriber.onNext(server);
+                        }
+                    }
+
+                    @Override
+                    public void onError() {}
+                };
+
+                registerServerDiscoveryListener(scannerCallback);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        deregisterServerDiscoveryListener(scannerCallback);
+                    }
+                }));
             }
         });
     }

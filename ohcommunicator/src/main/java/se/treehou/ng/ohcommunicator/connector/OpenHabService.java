@@ -23,8 +23,16 @@ public interface OpenHabService {
     Call<List<OHBinding>> listBindings();
 
     @Headers("Accept: application/json")
+    @GET("/rest/bindings")
+    Observable<List<OHBinding>> listBindingsRx();
+
+    @Headers("Accept: application/json")
     @GET("/rest/inbox")
     Call<List<OHInboxItem>> listInboxItems();
+
+    @Headers("Accept: application/json")
+    @GET("/rest/inbox")
+    Observable<List<OHInboxItem>> listInboxItemsRx();
 
     @Headers("Accept: application/json")
     @POST("/rest/inbox/{thingUID}/ignore")
@@ -45,6 +53,10 @@ public interface OpenHabService {
     @Headers("Accept: application/json")
     @GET("/rest/items/")
     Call<List<OHItem>> listItems();
+
+    @Headers("Accept: application/json")
+    @GET("/rest/items/")
+    Observable<List<OHItem>> listItemsRx();
 
     @Headers("Accept: application/json")
     @GET("/rest/sitemaps")

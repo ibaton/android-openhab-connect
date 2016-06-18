@@ -30,6 +30,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
 import se.treehou.ng.ohcommunicator.connector.ConnectorUtil;
 import se.treehou.ng.ohcommunicator.connector.GsonHelper;
@@ -96,6 +99,18 @@ public class Connector {
         }
 
         /**
+         * Request bindings through rx.
+         *
+         * @return observable for bindings.
+         */
+        public Observable<List<OHBinding>> requestBindingsRx(){
+            OpenHabService service = getService();
+            if(service == null) return null;
+
+            return service.listBindingsRx();
+        }
+
+        /**
          * Ask server for inbox items.
          *
          * @param inboxCallback server response callback.
@@ -117,6 +132,17 @@ public class Connector {
                     inboxCallback.onError();
                 }
             });
+        }
+
+        /**
+         * Ask server for inbox items as rx observable.
+         * @return observable for inbox items.
+         */
+        public Observable<List<OHInboxItem>> requestInboxItemsRx(){
+            OpenHabService service = getService();
+            if(service == null) return null;
+
+            return service.listInboxItemsRx();
         }
 
         public void requestItem(String itemName, final OHCallback<OHItem> itemCallback){
@@ -145,6 +171,46 @@ public class Connector {
             return task;
         }
 
+        /**
+         * Creates rx observable listening for page updates.
+         *
+         * @param server the server to connect to.
+         * @param page the page to listen for.
+         * @return page observable.
+         */
+        public Observable<OHLinkedPage> requestPageUpdatesRx(final OHServer server, final OHLinkedPage page) {
+
+            return Observable.create(new Observable.OnSubscribe<OHLinkedPage>(){
+                @Override
+                public void call(final Subscriber<? super OHLinkedPage> subscriber) {
+                    final PageRequestTask pageRequestTask = requestPageUpdates(server, page, new OHCallback<OHLinkedPage>() {
+                        @Override
+                        public void onUpdate(OHResponse<OHLinkedPage> items) {
+                            if(!subscriber.isUnsubscribed()) {
+                                subscriber.onNext(items.body());
+                            }
+                        }
+
+                        @Override
+                        public void onError() {
+                            // TODO pass errors
+                        }
+                    });
+
+                    subscriber.add(Subscriptions.create(new Action0() {
+                        @Override
+                        public void call() {
+                            pageRequestTask.stop();
+                        }
+                    }));
+
+                    if(!subscriber.isUnsubscribed()){
+                        pageRequestTask.start();
+                    }
+                }
+            });
+        }
+
         public void requestItem(final OHCallback<List<OHItem>> itemCallback){
             OpenHabService service = getService();
             if(service == null || itemCallback == null){
@@ -163,6 +229,20 @@ public class Connector {
                     itemCallback.onError();
                 }
             });
+        }
+
+        /**
+         * Request items observable.
+         *
+         * @return items observable.
+         */
+        public Observable<List<OHItem>> requestItemsRx(){
+            OpenHabService service = getService();
+            if(service == null){
+                return null;
+            }
+
+            return service.listItemsRx();
         }
 
         /**
@@ -346,6 +426,10 @@ public class Connector {
             });
         }
 
+        /**
+         * Request sitemap from server asyncronusly.
+         * @param sitemapsCallback
+         */
         public void requestSitemaps(final OHCallback<List<OHSitemap>> sitemapsCallback){
             OpenHabService service = getService();
             if(service == null) {
