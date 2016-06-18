@@ -3,7 +3,6 @@ package se.treehou.ng.ohcommunicator.services;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -164,7 +163,6 @@ public class Connector {
 
         }
 
-        @WorkerThread
         public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
             PageRequestTask task = new PageRequestTask(server, page, callback);
             task.start();
@@ -488,7 +486,6 @@ public class Connector {
                 this.callback = callback;
             }
 
-            @WorkerThread
             protected void start() {
 
                 com.ning.http.client.Realm clientRealm = null;
