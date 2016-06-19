@@ -42,10 +42,10 @@ dependencies {
     compile 'com.koushikdutta.async:androidasync:2.1.7'
     compile 'javax.jmdns:jmdns:3.4.1'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.7.4'
-    compile 'com.squareup.retrofit2:converter-gson:2.0.1'
-    compile 'com.squareup.retrofit2:converter-scalars:2.0.1'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.0.1'
-    compile 'com.squareup.retrofit2:retrofit:2.0.1'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.android.support:appcompat-v7:24.0.0'
     compile 'io.reactivex:rxandroid:1.1.0'
     compile 'io.reactivex:rxjava:1.1.0'
@@ -55,8 +55,8 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
 
-    androidTestCompile 'com.android.support.test:runner:0.4'
-    androidTestCompile 'com.android.support.test:rules:0.4'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
-    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.1'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2'
 }
