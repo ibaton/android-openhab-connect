@@ -29,7 +29,7 @@ import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
 import se.treehou.ng.ohcommunicator.util.ThreadPool;
 
-public class Scanner {
+public class Scanner implements IScanner {
 
     private static final String SERVICE_TYPE = "_openhab-server._tcp.local.";
     private static final String SERVICE_TYPE_SSL = "_openhab-server-ssl._tcp.local.";
@@ -162,6 +162,7 @@ public class Scanner {
      * Get rx listener for subscriber.
      * @return rx zeroconf listener
      */
+    @Override
     public Observable<OHServer> registerRx(){
         return Observable.create(new Observable.OnSubscribe<OHServer>() {
             @Override

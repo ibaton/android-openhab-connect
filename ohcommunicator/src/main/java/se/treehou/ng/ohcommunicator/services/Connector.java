@@ -46,7 +46,7 @@ import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
 
-public class Connector {
+public class Connector implements IConnector {
 
     private static final String TAG = Connector.class.getSimpleName();
 
@@ -60,11 +60,12 @@ public class Connector {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
     }
 
-    public ServerHandler getServerHandler(OHServer server){
+    @Override
+    public IServerHandler getServerHandler(OHServer server){
         return new ServerHandler(server, context);
     }
 
-    public static class ServerHandler {
+    public static class ServerHandler implements IServerHandler {
 
         private OHServer server;
         private Context context;
@@ -78,6 +79,7 @@ public class Connector {
             openHabService = generateOpenHabService(server, getUrl());
         }
 
+        @Override
         public void requestBindings(final OHCallback<List<OHBinding>> bindingCallback){
             OpenHabService service = getService();
             if(service == null || bindingCallback == null) return;
@@ -102,6 +104,7 @@ public class Connector {
          *
          * @return observable for bindings.
          */
+        @Override
         public Observable<List<OHBinding>> requestBindingsRx(){
             OpenHabService service = getService();
             if(service == null) return null;
@@ -114,6 +117,7 @@ public class Connector {
          *
          * @param inboxCallback server response callback.
          */
+        @Override
         public void requestInboxItems(final OHCallback<List<OHInboxItem>> inboxCallback){
             OpenHabService service = getService();
             if(service == null || inboxCallback == null) return;
@@ -137,6 +141,7 @@ public class Connector {
          * Ask server for inbox items as rx observable.
          * @return observable for inbox items.
          */
+        @Override
         public Observable<List<OHInboxItem>> requestInboxItemsRx(){
             OpenHabService service = getService();
             if(service == null) return null;
@@ -144,6 +149,7 @@ public class Connector {
             return service.listInboxItemsRx();
         }
 
+        @Override
         public void requestItem(String itemName, final OHCallback<OHItem> itemCallback){
             OpenHabService service = getService();
             if(service == null || itemCallback == null) return;
@@ -163,6 +169,7 @@ public class Connector {
 
         }
 
+        @Override
         public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
             PageRequestTask task = new PageRequestTask(server, page, callback);
             task.start();
@@ -176,6 +183,7 @@ public class Connector {
          * @param page the page to listen for.
          * @return page observable.
          */
+        @Override
         public Observable<OHLinkedPage> requestPageUpdatesRx(final OHServer server, final OHLinkedPage page) {
 
             return Observable.create(new Observable.OnSubscribe<OHLinkedPage>(){
@@ -201,14 +209,11 @@ public class Connector {
                             pageRequestTask.stop();
                         }
                     }));
-
-                    if(!subscriber.isUnsubscribed()){
-                        pageRequestTask.start();
-                    }
                 }
             });
         }
 
+        @Override
         public void requestItem(final OHCallback<List<OHItem>> itemCallback){
             OpenHabService service = getService();
             if(service == null || itemCallback == null){
@@ -234,6 +239,7 @@ public class Connector {
          *
          * @return items observable.
          */
+        @Override
         public Observable<List<OHItem>> requestItemsRx(){
             OpenHabService service = getService();
             if(service == null){
@@ -249,6 +255,7 @@ public class Connector {
          * @param page the page to fetch.
          * @param responseListener response listener.
          */
+        @Override
         public void requestPage(OHLinkedPage page, final OHCallback<OHLinkedPage> responseListener) {
             OpenHabService service = getService();
             service.getPage(page.getLink()).enqueue(new Callback<OHLinkedPage>() {
@@ -272,6 +279,7 @@ public class Connector {
          * @param page the page to fetch.
          * @return observable for page
          */
+        @Override
         public Observable<OHLinkedPage> requestPageRx(OHLinkedPage page) {
             OpenHabService service = getService();
             return service.getPageRx(page.getLink());
@@ -282,6 +290,7 @@ public class Connector {
          *
          * @return url for server.
          */
+        @Override
         public String getUrl(){
             return getUrl(context, server);
         }
@@ -342,7 +351,8 @@ public class Connector {
          *
          * @param inboxItem the inbox item to approve.
          */
-        public void approveInboxItem (OHInboxItem inboxItem){
+        @Override
+        public void approveInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
             if(service == null) return;
 
@@ -365,6 +375,7 @@ public class Connector {
          *
          * @param inboxItem the inbox item to ignore.
          */
+        @Override
         public void ignoreInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
             if(service == null) return;
@@ -389,6 +400,7 @@ public class Connector {
          *
          * @param inboxItem the inbox item to unignore.
          */
+        @Override
         public void unignoreInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
             if(service == null) return;
@@ -407,6 +419,7 @@ public class Connector {
             inboxItem.setFlag(OHInboxItem.FLAG_NEW);
         }
 
+        @Override
         public void sendCommand(final String item, final String command){
             OpenHabService service = getService();
             if(service == null) return;
@@ -428,6 +441,7 @@ public class Connector {
          * Request sitemap from server asyncronusly.
          * @param sitemapsCallback
          */
+        @Override
         public void requestSitemaps(final OHCallback<List<OHSitemap>> sitemapsCallback){
             OpenHabService service = getService();
             if(service == null) {
@@ -456,6 +470,7 @@ public class Connector {
          * Request sitemaps from servera
          * @return observer for remote sitemaps
          */
+        @Override
         public Observable<List<OHSitemap>> requestSitemapObservable(){
              return getService().listSitemapsRx();
         }
