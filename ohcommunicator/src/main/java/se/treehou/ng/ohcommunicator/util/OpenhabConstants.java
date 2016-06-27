@@ -14,7 +14,7 @@ public class OpenhabConstants {
     public static final String TYPE_TEXT            = "Text";
     public static final String TYPE_SLIDER          = "Slider";
     public static final String TYPE_GROUP           = "Group";
-    private static final String TYPE_GROUP_ITEM      = "GroupItem";
+    public static final String TYPE_GROUP_ITEM      = "GroupItem";
     public static final String TYPE_SETPOINT        = "Setpoint";
 
     private OpenhabConstants() {}

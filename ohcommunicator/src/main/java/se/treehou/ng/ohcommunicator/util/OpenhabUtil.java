@@ -10,7 +10,7 @@ public class OpenhabUtil {
      */
     public static boolean isGroup(String itemType){
         return OpenhabConstants.TYPE_GROUP.equalsIgnoreCase(itemType) ||
-                OpenhabConstants.TYPE_GROUP.equalsIgnoreCase(itemType);
+                OpenhabConstants.TYPE_GROUP_ITEM.equalsIgnoreCase(itemType);
     }
 
     private OpenhabUtil() {}
