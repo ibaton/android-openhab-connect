@@ -4,22 +4,7 @@ import java.util.List;
 
 public class OHWidget {
 
-    public static final String TAG                  = "Widget";
-
-    // TODO convert to enum
-    public static final String TYPE_DUMMY           = "Dummy";
-    public static final String TYPE_FRAME           = "Frame";
-    public static final String TYPE_SWITCH          = "Switch";
-    public static final String TYPE_COLORPICKER     = "Colorpicker";
-    public static final String TYPE_SELECTION       = "Selection";
-    public static final String TYPE_CHART           = "Chart";
-    public static final String TYPE_IMAGE           = "Image";
-    public static final String TYPE_VIDEO           = "Video";
-    public static final String TYPE_WEB             = "Webview";
-    public static final String TYPE_TEXT            = "Text";
-    public static final String TYPE_SLIDER          = "Slider";
-    public static final String TYPE_GROUP           = "Group";
-    public static final String TYPE_SETPOINT        = "Setpoint";
+    public static final String TAG = OHWidget.class.getSimpleName();
 
     private String widgetId;
     private String type;
