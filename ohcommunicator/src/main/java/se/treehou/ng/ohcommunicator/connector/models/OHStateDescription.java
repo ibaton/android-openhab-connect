@@ -1,11 +1,17 @@
 package se.treehou.ng.ohcommunicator.connector.models;
 
-public class OHStateDescription /*extends RealmObject*/ {
+public class OHStateDescription {
 
-    //@PrimaryKey
-    private long id = 0;
-    private String pattern;
-    private boolean readOnly;
+    private String pattern = "";
+    private boolean readOnly = false;
+
+    public OHStateDescription() {
+    }
+
+    public OHStateDescription(String pattern, boolean readOnly) {
+        this.pattern = pattern;
+        this.readOnly = readOnly;
+    }
 
     public String getPattern() {
         return pattern;
@@ -21,13 +27,5 @@ public class OHStateDescription /*extends RealmObject*/ {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }

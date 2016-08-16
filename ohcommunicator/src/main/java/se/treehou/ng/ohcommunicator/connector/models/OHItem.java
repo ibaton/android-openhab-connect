@@ -18,7 +18,7 @@ public class OHItem {
     private String name;
     private String link;
     private String state;
-    private OHStateDescription stateDescription;
+    private OHStateDescription stateDescription = new OHStateDescription();
 
     public long getId() {
         return id;
@@ -73,6 +73,9 @@ public class OHItem {
     }
 
     public void setStateDescription(OHStateDescription stateDescription) {
+        if(stateDescription == null){
+            return;
+        }
         this.stateDescription = stateDescription;
     }
 
