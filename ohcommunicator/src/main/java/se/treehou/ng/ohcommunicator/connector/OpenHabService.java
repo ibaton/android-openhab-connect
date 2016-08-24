@@ -50,6 +50,11 @@ public interface OpenHabService {
     @GET("/rest/items/{id}")
     Call<OHItem> getItem(@Path("id") String id);
 
+
+    @Headers("Accept: application/json")
+    @GET("/rest/items/{id}")
+    Observable<OHItem> getItemRx(@Path("id") String id);
+
     @Headers("Accept: application/json")
     @GET("/rest/items/")
     Call<List<OHItem>> listItems();

@@ -31,6 +31,14 @@ public interface IServerHandler {
 
         void requestItem(OHCallback<List<OHItem>> itemCallback);
 
+        /**
+         * Request item as observable stream.
+         *
+         * @param itemName the name of item to fetch.
+         * @return observable emitting openhab items.
+         */
+        Observable<OHItem> requestItemRx(String itemName);
+
         Observable<List<OHItem>> requestItemsRx();
 
         void requestPage(OHLinkedPage page, OHCallback<OHLinkedPage> responseListener);

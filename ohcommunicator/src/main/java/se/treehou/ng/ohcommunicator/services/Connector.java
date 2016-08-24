@@ -170,6 +170,14 @@ public class Connector implements IConnector {
         }
 
         @Override
+        public Observable<OHItem> requestItemRx(String itemName){
+            OpenHabService service = getService();
+            if(service == null) return Observable.never();
+
+            return service.getItemRx(itemName).asObservable();
+        }
+
+        @Override
         public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
             PageRequestTask task = new PageRequestTask(server, page, callback);
             task.start();
