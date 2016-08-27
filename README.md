@@ -21,7 +21,7 @@ allprojects {
 
 ```
 dependencies {
-  compile 'com.github.ibaton:android-openhab-connect:1.1.20'
+  compile 'com.github.ibaton:android-openhab-connect:1.1.21'
 }
 ```
 
