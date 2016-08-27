@@ -57,7 +57,7 @@ public class OHItem {
         return label;
     }
 
-    public void setNameLabel(String label) {
+    public void setLabel(String label) {
         this.label = label;
     }
 

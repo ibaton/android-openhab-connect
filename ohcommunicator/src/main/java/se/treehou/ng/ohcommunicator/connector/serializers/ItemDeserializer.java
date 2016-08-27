@@ -31,7 +31,7 @@ public class ItemDeserializer implements JsonDeserializer<OHItem>, JsonSerialize
         }
 
         if(jObject.has("label")) {
-            item.setName(jObject.get("label").getAsString());
+            item.setLabel(jObject.get("label").getAsString());
         }
 
         if(jObject.has("state")) {
