@@ -16,6 +16,7 @@ public class OHItem {
     private OHServer server;
     private String type;
     private String name;
+    private String label;
     private String link;
     private String state;
     private OHStateDescription stateDescription = new OHStateDescription();
@@ -50,6 +51,14 @@ public class OHItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setNameLabel(String label) {
+        this.label = label;
     }
 
     public String getLink() {
