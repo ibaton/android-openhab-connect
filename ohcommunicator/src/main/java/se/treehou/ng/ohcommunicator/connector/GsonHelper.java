@@ -36,7 +36,6 @@ public class GsonHelper {
             gsonBuilder.registerTypeAdapter(new TypeToken<List<OHMapping>>() {}.getType(), new WidgetMappingDeserializer());
             gsonBuilder.registerTypeAdapter(OHLinkedPage.class, new LinkedPageDeserializer());
             gsonBuilder.registerTypeAdapter(new TypeToken<List<OHItem>>() {}.getType(), new ItemListDeserializer());
-            gsonBuilder.registerTypeAdapter(OHStateDescription.class, new ItemStateDeserializer());
             gson = gsonBuilder.create();
         }
 

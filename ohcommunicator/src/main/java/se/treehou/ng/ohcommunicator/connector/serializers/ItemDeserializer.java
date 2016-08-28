@@ -60,7 +60,7 @@ public class ItemDeserializer implements JsonDeserializer<OHItem>, JsonSerialize
         object.addProperty("link", src.getLink());
 
         if(src.getStateDescription() != null) {
-            object.add("stateDescription", context.serialize(src.getStateDescription(), OHStateDescription.class));
+            object.add("stateDescription", context.serialize(src.getStateDescription()));
         }
 
         return object;
