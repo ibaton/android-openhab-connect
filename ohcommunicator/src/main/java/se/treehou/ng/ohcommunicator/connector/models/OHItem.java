@@ -1,5 +1,7 @@
 package se.treehou.ng.ohcommunicator.connector.models;
 
+import com.google.gson.annotations.Expose;
+
 public class OHItem {
 
     public static final String TYPE_SWITCH = "SwitchItem";
@@ -11,9 +13,12 @@ public class OHItem {
     public static final String TYPE_GROUP = "GroupItem";
     public static final String TYPE_DIMMER = "DimmerItem";
 
+    @Expose(serialize = false, deserialize = false)
     private long id;
 
+    @Expose(serialize = false, deserialize = false)
     private OHServer server;
+
     private String type;
     private String name;
     private String label;

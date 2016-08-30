@@ -1,4 +1,4 @@
-package se.treehou.ng.ohcommunicator.connector;
+package se.treehou.ng.ohcommunicator.connector.serializers;
 
 import com.google.gson.Gson;
 
@@ -6,9 +6,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import se.treehou.ng.ohcommunicator.connector.GsonHelper;
 import se.treehou.ng.ohcommunicator.connector.models.OHStateDescription;
 
-public class GsonHelperTest {
+public class JsonStateDescriptionTest {
 
     private Gson gson;
 
