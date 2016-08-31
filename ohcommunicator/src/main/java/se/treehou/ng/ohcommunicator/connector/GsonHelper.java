@@ -10,11 +10,8 @@ import se.treehou.ng.ohcommunicator.connector.models.OHItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHMapping;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
-import se.treehou.ng.ohcommunicator.connector.models.OHStateDescription;
 import se.treehou.ng.ohcommunicator.connector.models.OHWidget;
-import se.treehou.ng.ohcommunicator.connector.serializers.ItemDeserializer;
 import se.treehou.ng.ohcommunicator.connector.serializers.ItemListDeserializer;
-import se.treehou.ng.ohcommunicator.connector.serializers.ItemStateDeserializer;
 import se.treehou.ng.ohcommunicator.connector.serializers.LinkedPageDeserializer;
 import se.treehou.ng.ohcommunicator.connector.serializers.SitemapListDeserializer;
 import se.treehou.ng.ohcommunicator.connector.serializers.WidgetDeserializer;
@@ -30,7 +27,6 @@ public class GsonHelper {
 
         if (gson == null) {
             GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.registerTypeAdapter(OHItem.class, new ItemDeserializer());
             gsonBuilder.registerTypeAdapter(new TypeToken<List<OHWidget>>() {}.getType(), new WidgetDeserializer());
             gsonBuilder.registerTypeAdapter(new TypeToken<List<OHSitemap>>() {}.getType(), new SitemapListDeserializer());
             gsonBuilder.registerTypeAdapter(new TypeToken<List<OHMapping>>() {}.getType(), new WidgetMappingDeserializer());

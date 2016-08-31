@@ -21,10 +21,22 @@ public class OHStateDescription {
         this.pattern = pattern;
     }
 
+    /**
+     * Set if the value can be written to.
+     * State of item cant be modified if read only.
+     *
+     * @return true if state is read only, else false.
+     */
     public boolean isReadOnly() {
         return readOnly;
     }
 
+    /**
+     * Set if the value can be written to.
+     * State of item cant be modified if read only.
+     *
+     * @param readOnly true if read only, else false.
+     */
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
     }

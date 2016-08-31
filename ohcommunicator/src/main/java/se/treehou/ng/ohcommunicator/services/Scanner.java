@@ -101,7 +101,6 @@ public class Scanner implements IScanner {
         });
     }
 
-
     private void updateZeroconfListener(){
         ThreadPool.instance().submit(new Runnable() {
             @Override
