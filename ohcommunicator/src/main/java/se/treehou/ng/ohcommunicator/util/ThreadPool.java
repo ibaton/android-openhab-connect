@@ -9,6 +9,11 @@ public class ThreadPool {
 
     private static ExecutorService executorService = Executors.newCachedThreadPool();
 
+    /**
+     * Get thread pool used for submitting tasks.
+     *
+     * @return get thread pool used for submitting tasks..
+     */
     public static ExecutorService instance(){
         return executorService;
     }

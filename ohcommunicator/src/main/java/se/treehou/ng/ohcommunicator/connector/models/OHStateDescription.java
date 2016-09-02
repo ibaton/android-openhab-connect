@@ -5,9 +5,18 @@ public class OHStateDescription {
     private String pattern = "";
     private boolean readOnly = false;
 
+    /**
+     * Create a description of item state.
+     */
     public OHStateDescription() {
     }
 
+    /**
+     * Create a description of item state.
+     *
+     * @param pattern pattern for value.
+     * @param readOnly true if state is read only, else false.
+     */
     public OHStateDescription(String pattern, boolean readOnly) {
         this.pattern = pattern;
         this.readOnly = readOnly;

@@ -3,9 +3,9 @@ package se.treehou.ng.ohcommunicator.util;
 /**
  * Holds commands that can be sent to openhab server
  */
-public class CommandConstants {
+public class Commands {
 
-    private CommandConstants() {}
+    private Commands() {}
 
     public static final String COMMAND_ON       = "ON";
     public static final String COMMAND_OFF      = "OFF";

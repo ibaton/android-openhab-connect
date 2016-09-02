@@ -176,18 +176,15 @@ public class OHItem {
             String pattern = getStateDescription().getPattern();
             try {
                 return String.format(pattern, Float.valueOf(getState()));
-            }
-            catch (Exception e){}
+            } catch (Exception e){}
 
             try {
                 return String.format(pattern, Integer.valueOf(getState()));
-            }
-            catch (Exception e){}
+            } catch (Exception e){}
 
             try {
                 return String.format(pattern, getState());
-            }
-            catch (Exception e){}
+            } catch (Exception e){}
         }
 
         return getState();

@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.Random;
 
 import se.treehou.ng.ohcommunicator.connector.models.OHWidget;
+import se.treehou.ng.ohcommunicator.util.OpenhabConstants;
 import se.treehou.ng.ohcommunicator.util.OpenhabUtil;
 
 public class ConnectorUtil {
@@ -84,7 +85,7 @@ public class ConnectorUtil {
 
         Random random = new Random();
         String type = OpenhabUtil.isGroup(widget.getItem().getType()) ? "groups" : "items";
-        Uri.Builder uriBuilder = Uri.parse(baseUrl+Constants.CHART_URL).buildUpon()
+        Uri.Builder uriBuilder = Uri.parse(baseUrl+ OpenhabConstants.CHART_URL).buildUpon()
                 .appendQueryParameter(type, widget.getItem().getName())
                 .appendQueryParameter("period", widget.getPeriod())
                 .appendQueryParameter("random",String.valueOf(Math.abs(random.nextInt())));

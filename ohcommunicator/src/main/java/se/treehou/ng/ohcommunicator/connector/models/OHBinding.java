@@ -7,19 +7,36 @@ public class OHBinding {
     private String author;
     private String description;
 
-    public String getAuthor() {
-        return author;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
+    /**
+     * Get id of binding.
+     * @return binding id.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Get the name of Openhab binding.
+     * @return openhab binding name.
+     */
     public String getName() {
         return name;
     }
+
+    /**
+     * Get binding description.
+     * @return binding description.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Get the author of the binding.
+     * @return binding author.
+     */
+    public String getAuthor() {
+        return author;
+    }
+
 }

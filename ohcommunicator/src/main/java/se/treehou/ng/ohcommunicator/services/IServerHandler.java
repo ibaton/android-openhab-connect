@@ -11,51 +11,143 @@ import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 
-/**
- * Created by matti on 2016-06-25.
- */
 public interface IServerHandler {
-        void requestBindings(OHCallback<List<OHBinding>> bindingCallback);
+    void requestBindings(OHCallback<List<OHBinding>> bindingCallback);
 
-        Observable<List<OHBinding>> requestBindingsRx();
+    /**
+     * Request binding as observable.
+     *
+     * @return binding observable.
+     */
+    Observable<List<OHBinding>> requestBindingsRx();
 
-        void requestInboxItems(OHCallback<List<OHInboxItem>> inboxCallback);
+    /**
+     * Request updates to page.
+     *
+     * @param server   the server to connect to.
+     * @param page     the page.
+     * @param callback request callback.
+     * @return cancelable request.
+     */
+    Connector.ServerHandler.PageRequestTask requestPageUpdates(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback);
 
-        Observable<List<OHInboxItem>> requestInboxItemsRx();
+    /**
+     * Request updates for page rx
+     *
+     * @param server the server to connect to.
+     * @param page   the page to fetch updates for
+     * @return observable returning updates for page.
+     */
+    Observable<OHLinkedPage> requestPageUpdatesRx(OHServer server, OHLinkedPage page);
 
-        void requestItem(String itemName, OHCallback<OHItem> itemCallback);
+    /**
+     * Request item data.
+     *
+     * @param itemCallback
+     */
+    void requestItems(OHCallback<List<OHItem>> itemCallback);
 
-        Connector.ServerHandler.PageRequestTask requestPageUpdates(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback);
+    /**
+     * Request items as observable
+     *
+     * @return item observable.
+     */
+    Observable<List<OHItem>> requestItemsRx();
 
-        Observable<OHLinkedPage> requestPageUpdatesRx(OHServer server, OHLinkedPage page);
+    /**
+     * Request item with callback.
+     *
+     * @param itemName     the name of item to fetch.
+     * @param itemCallback callback for item request.
+     */
+    void requestItem(String itemName, OHCallback<OHItem> itemCallback);
 
-        void requestItem(OHCallback<List<OHItem>> itemCallback);
+    /**
+     * Request item as observable stream.
+     *
+     * @param itemName the name of item to fetch.
+     * @return observable emitting openhab items.
+     */
+    Observable<OHItem> requestItemRx(String itemName);
 
-        /**
-         * Request item as observable stream.
-         *
-         * @param itemName the name of item to fetch.
-         * @return observable emitting openhab items.
-         */
-        Observable<OHItem> requestItemRx(String itemName);
+    /**
+     * Request page with with callback.
+     *
+     * @param page             the page to fetch.
+     * @param responseListener litener for page response.
+     */
+    void requestPage(OHLinkedPage page, OHCallback<OHLinkedPage> responseListener);
 
-        Observable<List<OHItem>> requestItemsRx();
+    /**
+     * Request page as observable.
+     *
+     * @param page the page to fetch.
+     * @return observable returning page from server.
+     */
+    Observable<OHLinkedPage> requestPageRx(OHLinkedPage page);
 
-        void requestPage(OHLinkedPage page, OHCallback<OHLinkedPage> responseListener);
+    /**
+     * Get used to connect to server.
+     *
+     * @return server url-
+     */
+    String getUrl();
 
-        Observable<OHLinkedPage> requestPageRx(OHLinkedPage page);
+    /**
+     * Request inbox items from server.
+     *
+     * @param inboxCallback callback from server.
+     */
+    void requestInboxItems(OHCallback<List<OHInboxItem>> inboxCallback);
 
-        String getUrl();
+    /**
+     * Request inbox items from server
+     *
+     * @return observaable returning inbox items.
+     */
+    Observable<List<OHInboxItem>> requestInboxItemsRx();
 
-        void approveInboxItem(OHInboxItem inboxItem);
+    /**
+     * Approve inbox item.
+     *
+     * @param inboxItem the inbox item to approve.
+     */
+    void approveInboxItem(OHInboxItem inboxItem);
 
-        void ignoreInboxItem(OHInboxItem inboxItem);
+    /**
+     * Ignore inbox item.
+     *
+     * @param inboxItem ignore inbox item.
+     */
+    void ignoreInboxItem(OHInboxItem inboxItem);
 
-        void unignoreInboxItem(OHInboxItem inboxItem);
+    /**
+     * Unignore ignored inbox item.
+     *
+     * @param inboxItem the item to unignore.
+     */
+    void unignoreInboxItem(OHInboxItem inboxItem);
 
-        void sendCommand(String item, String command);
+    /**
+     * Send command to item on server.
+     * {@link se.treehou.ng.ohcommunicator.util.Commands}
+     *
+     * @param item    item to send command to.
+     * @param command the command to send.
+     */
+    void sendCommand(String item, String command);
 
-        void requestSitemaps(OHCallback<List<OHSitemap>> sitemapsCallback);
+    /**
+     * Request sitemap from server.
+     *
+     * @param sitemapsCallback sitemap response.
+     */
+    void requestSitemaps(OHCallback<List<OHSitemap>> sitemapsCallback);
 
-        Observable<List<OHSitemap>> requestSitemapObservable();
+    /**
+     * Request sitemap as observable.
+     *
+     * @return sitemap as observable.
+     */
+    Observable<List<OHSitemap>> requestSitemapRx();
 }

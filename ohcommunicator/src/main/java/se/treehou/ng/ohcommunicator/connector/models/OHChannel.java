@@ -2,7 +2,7 @@ package se.treehou.ng.ohcommunicator.connector.models;
 
 import java.util.List;
 
-public class Channel {
+public class OHChannel {
 
     private String description;
     private String id;

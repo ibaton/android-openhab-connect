@@ -56,7 +56,13 @@ public class Connector implements IConnector {
         this.context = context;
     }
 
-    public static OpenHabService generateOpenHabService(OHServer server, String url){
+    /**
+     * Create handler used to connect to openhab.
+     * @param server the server to connect to.
+     * @param url the url to connect to
+     * @return Service used to communicate with openhab.
+     */
+    private static OpenHabService generateOpenHabService(OHServer server, String url){
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
     }
 
@@ -97,6 +103,17 @@ public class Connector implements IConnector {
                     bindingCallback.onError();
                 }
             });
+        }
+
+        /**
+         * Generate an openhab service used to connect to server.
+         *
+         * @return openhab service.
+         */
+        private OpenHabService getService(){
+            openHabService = generateOpenHabService(server, getUrl());
+
+            return openHabService;
         }
 
         /**
@@ -222,7 +239,7 @@ public class Connector implements IConnector {
         }
 
         @Override
-        public void requestItem(final OHCallback<List<OHItem>> itemCallback){
+        public void requestItems(final OHCallback<List<OHItem>> itemCallback){
             OpenHabService service = getService();
             if(service == null || itemCallback == null){
                 return;
@@ -323,12 +340,6 @@ public class Connector implements IConnector {
             if(url == null) url = "";
 
             return url;
-        }
-
-        private OpenHabService getService(){
-            openHabService = generateOpenHabService(server, getUrl());
-
-            return openHabService;
         }
 
         /**
@@ -479,7 +490,7 @@ public class Connector implements IConnector {
          * @return observer for remote sitemaps
          */
         @Override
-        public Observable<List<OHSitemap>> requestSitemapObservable(){
+        public Observable<List<OHSitemap>> requestSitemapRx(){
              return getService().listSitemapsRx();
         }
 

@@ -5,7 +5,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 
 import okhttp3.Authenticator;
