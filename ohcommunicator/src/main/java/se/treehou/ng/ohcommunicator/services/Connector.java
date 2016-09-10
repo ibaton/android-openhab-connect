@@ -40,6 +40,7 @@ import se.treehou.ng.ohcommunicator.connector.TrustModifier;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
+import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
@@ -85,6 +86,17 @@ public class Connector implements IConnector {
             openHabService = generateOpenHabService(server, getUrl());
         }
 
+        /**
+         * Generate an openhab service used to connect to server.
+         *
+         * @return openhab service.
+         */
+        private OpenHabService getService(){
+            openHabService = generateOpenHabService(server, getUrl());
+
+            return openHabService;
+        }
+
         @Override
         public void requestBindings(final OHCallback<List<OHBinding>> bindingCallback){
             OpenHabService service = getService();
@@ -103,17 +115,6 @@ public class Connector implements IConnector {
                     bindingCallback.onError();
                 }
             });
-        }
-
-        /**
-         * Generate an openhab service used to connect to server.
-         *
-         * @return openhab service.
-         */
-        private OpenHabService getService(){
-            openHabService = generateOpenHabService(server, getUrl());
-
-            return openHabService;
         }
 
         /**
@@ -192,6 +193,48 @@ public class Connector implements IConnector {
             if(service == null) return Observable.never();
 
             return service.getItemRx(itemName).asObservable();
+        }
+
+        @Override
+        public void requestLinks(final OHCallback<List<OHLink>> callback){
+            OpenHabService service = getService();
+            if(service == null || callback == null) return;
+
+            service.listLinks().enqueue(new Callback<List<OHLink>>() {
+                @Override
+                public void onResponse(Call<List<OHLink>> call, Response<List<OHLink>> response) {
+                    List<OHLink> items = response.body();
+                    if(items == null) items = new ArrayList<>();
+                    callback.onUpdate(new OHResponse.Builder<>(items).build());
+                }
+
+                @Override
+                public void onFailure(Call<List<OHLink>> call, Throwable t) {
+                    callback.onError();
+                }
+            });
+        }
+
+        @Override
+        public Observable<List<OHLink>> requestLinksRx(){
+            OpenHabService service = getService();
+            if(service == null) return Observable.never();
+
+            return service.listLinksRx();
+        }
+
+        @Override
+        public Call<Void> createLink(OHLink link){
+            OpenHabService service = getService();
+            if(service == null || link == null) return null;
+            return service.createLink(link.getItemName(), link.getChannelUID());
+        }
+
+        @Override
+        public Call<Void> deleteLink(OHLink link){
+            OpenHabService service = getService();
+            if(service == null || link == null) return null;
+            return service.deleteLink(link.getItemName(), link.getChannelUID());
         }
 
         @Override

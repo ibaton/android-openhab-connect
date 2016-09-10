@@ -4,27 +4,36 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Url;
 import rx.Observable;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
+import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 
 public interface OpenHabService {
 
     @Headers("Accept: application/json")
-    @GET("/rest/bindings")
-    Call<List<OHBinding>> listBindings();
+    @GET("/rest/links")
+    Call<List<OHLink>> listLinks();
 
     @Headers("Accept: application/json")
-    @GET("/rest/bindings")
-    Observable<List<OHBinding>> listBindingsRx();
+    @GET("/rest/links")
+    Observable<List<OHLink>> listLinksRx();
+
+    @PUT("/rest/links/{itemName}/{channelUID}")
+    Call<Void> createLink(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
+
+    @DELETE("/rest/links/{itemName}/{channelUID}")
+    Call<Void> deleteLink(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
 
     @Headers("Accept: application/json")
     @GET("/rest/inbox")
@@ -45,6 +54,14 @@ public interface OpenHabService {
     @Headers("Accept: application/json")
     @POST("/rest/inbox/{thingUID}/approve")
     Call<Void> approveInboxItems(@Path("thingUID") String thingUID);
+
+    @Headers("Accept: application/json")
+    @GET("/rest/bindings")
+    Call<List<OHBinding>> listBindings();
+
+    @Headers("Accept: application/json")
+    @GET("/rest/bindings")
+    Observable<List<OHBinding>> listBindingsRx();
 
     @Headers("Accept: application/json")
     @GET("/rest/items/{id}")

@@ -2,10 +2,12 @@ package se.treehou.ng.ohcommunicator.services;
 
 import java.util.List;
 
+import retrofit2.Call;
 import rx.Observable;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
+import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
@@ -20,6 +22,35 @@ public interface IServerHandler {
      * @return binding observable.
      */
     Observable<List<OHBinding>> requestBindingsRx();
+
+    /**
+     * Request links from server.
+     * @param callback callback for links.
+     */
+    void requestLinks(OHCallback<List<OHLink>> callback);
+
+    /**
+     * Request obserbable emitting links.
+     *
+     * @return observable emitting link objects.
+     */
+    Observable<List<OHLink>> requestLinksRx();
+
+    /**
+     * Create a link object.
+     *
+     * @param link the link to create
+     * @return request.
+     */
+    Call<Void> createLink(OHLink link);
+
+    /**
+     * Delete a link object.
+     *
+     * @param link the link to delete
+     * @return request.
+     */
+    Call<Void> deleteLink(OHLink link);
 
     /**
      * Request updates to page.
