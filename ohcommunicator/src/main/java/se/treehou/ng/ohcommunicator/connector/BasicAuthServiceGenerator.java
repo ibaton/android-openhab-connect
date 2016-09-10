@@ -7,12 +7,17 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
+
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
+import okhttp3.internal.platform.Platform;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -30,17 +35,26 @@ public class BasicAuthServiceGenerator {
         OkHttpClient.Builder client = new OkHttpClient.Builder();
 
         if(!TextUtils.isEmpty(usernarname) && !TextUtils.isEmpty(password)) {
-            client.authenticator(new Authenticator() {
+            client.addInterceptor(new Interceptor() {
                 @Override
-                public Request authenticate(Route route, Response response) throws IOException {
-                    String credential = Credentials.basic(usernarname, password);
-                    return response.request().newBuilder().header("Authorization", credential).build();
+                public Response intercept(Interceptor.Chain chain) throws IOException {
+                    Request original = chain.request();
+
+                    Request.Builder requestBuilder = original.newBuilder()
+                            .header("Authorization", Credentials.basic(usernarname, password))
+                            .header("Accept", "application/json")
+                            .method(original.method(), original.body());
+
+                    Request request = requestBuilder.build();
+                    return chain.proceed(request);
                 }
             });
         }
 
         try {
-            client.sslSocketFactory(TrustModifier.createFactory());
+            SSLSocketFactory socketFactory = TrustModifier.createFactory();
+            X509TrustManager trustManager = Platform.get().trustManager(socketFactory);
+            client.sslSocketFactory(socketFactory, trustManager);
             client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();
