@@ -45,6 +45,7 @@ import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
+import se.treehou.ng.ohcommunicator.connector.models.OHThing;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
 
@@ -549,7 +550,16 @@ public class Connector implements IConnector {
          */
         @Override
         public Observable<List<OHSitemap>> requestSitemapRx(){
-             return getService().listSitemapsRx();
+            OpenHabService service = getService();
+            if(service == null) return Observable.error(new NoServerFoundException());
+             return service.listSitemapsRx();
+        }
+
+        @Override
+        public Observable<List<OHThing>> requestThingsRx() {
+            OpenHabService service = getService();
+            if(service == null) return Observable.error(new NoServerFoundException());
+            return service.listThingsRx();
         }
 
         private static class OHPageDecoder implements Decoder<String, OHLinkedPage> {
@@ -640,6 +650,8 @@ public class Connector implements IConnector {
             }
         }
     }
+
+    public static class NoServerFoundException extends Exception{}
 
     static class NullCallback<T> implements Callback<T>{
         @Override
