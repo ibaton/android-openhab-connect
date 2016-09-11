@@ -20,6 +20,7 @@ import se.treehou.ng.ohcommunicator.connector.models.OHItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
+import se.treehou.ng.ohcommunicator.connector.models.OHThing;
 
 public interface OpenHabService {
 
@@ -114,4 +115,8 @@ public interface OpenHabService {
     })
     @POST("/rest/items/{id}")
     Call<Void> sendCommand(@Body String command, @Path("id") String id);
+
+    @Headers("Accept: application/json")
+    @GET("/rest/things")
+    Observable<List<OHThing>> listThingsRx();
 }

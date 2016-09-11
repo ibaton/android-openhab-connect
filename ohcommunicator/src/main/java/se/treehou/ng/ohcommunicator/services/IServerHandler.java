@@ -14,6 +14,7 @@ import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
+import se.treehou.ng.ohcommunicator.connector.models.OHThing;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 
 public interface IServerHandler {
@@ -198,4 +199,10 @@ public interface IServerHandler {
      * @return sitemap as observable.
      */
     Observable<List<OHSitemap>> requestSitemapRx();
+
+    /**
+     * Request things from server.
+     * @return observable returning things.
+     */
+    Observable<List<OHThing>> requestThingsRx();
 }
