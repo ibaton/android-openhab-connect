@@ -224,17 +224,28 @@ public class Connector implements IConnector {
         }
 
         @Override
-        public Call<Void> createLink(OHLink link){
-            OpenHabService service = getService();
-            if(service == null || link == null) return null;
-            return service.createLink(link.getItemName(), link.getChannelUID());
+        public void createLink(OHLink link){
+            createLink(link, new NullCallback<Void>());
         }
 
         @Override
-        public Call<Void> deleteLink(OHLink link){
+        public void createLink(OHLink link, Callback<Void> callback){
             OpenHabService service = getService();
-            if(service == null || link == null) return null;
-            return service.deleteLink(link.getItemName(), link.getChannelUID());
+            if(service == null || link == null) return;
+            service.createLink(link.getItemName(), link.getChannelUID()).enqueue(callback);
+        }
+
+        @Override
+        public void deleteLink(OHLink link){
+            deleteLink(link, new NullCallback<Void>());
+        }
+
+
+        @Override
+        public void deleteLink(OHLink link, Callback<Void> callback){
+            OpenHabService service = getService();
+            if(service == null || link == null) return;
+            service.deleteLink(link.getItemName(), link.getChannelUID()).enqueue(callback);
         }
 
         @Override
@@ -623,6 +634,18 @@ public class Connector implements IConnector {
                     asyncHttpClient.close();
                 }
             }
+        }
+    }
+
+    static class NullCallback<T> implements Callback<T>{
+        @Override
+        public void onResponse(Call<T> call, Response<T> response) {
+
+        }
+
+        @Override
+        public void onFailure(Call<T> call, Throwable t) {
+
         }
     }
 }
