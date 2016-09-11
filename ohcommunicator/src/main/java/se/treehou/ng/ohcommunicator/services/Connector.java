@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -225,27 +226,30 @@ public class Connector implements IConnector {
 
         @Override
         public void createLink(OHLink link){
-            createLink(link, new NullCallback<Void>());
+            OpenHabService service = getService();
+            if(service == null || link == null) return;
+            service.createLink(link.getItemName(), link.getChannelUID());
         }
 
         @Override
-        public void createLink(OHLink link, Callback<Void> callback){
+        public Observable<Response<ResponseBody>> createLinkRx(OHLink link){
             OpenHabService service = getService();
-            if(service == null || link == null) return;
-            service.createLink(link.getItemName(), link.getChannelUID()).enqueue(callback);
+            if(service == null || link == null) return Observable.error(new IOException("No server found"));
+            return service.createLinkRx(link.getItemName(), link.getChannelUID());
         }
 
         @Override
         public void deleteLink(OHLink link){
-            deleteLink(link, new NullCallback<Void>());
-        }
-
-
-        @Override
-        public void deleteLink(OHLink link, Callback<Void> callback){
             OpenHabService service = getService();
             if(service == null || link == null) return;
-            service.deleteLink(link.getItemName(), link.getChannelUID()).enqueue(callback);
+            service.deleteLink(link.getItemName(), link.getChannelUID());
+        }
+
+        @Override
+        public Observable<Response<ResponseBody>> deleteLinkRx(OHLink link){
+            OpenHabService service = getService();
+            if(service == null || link == null) return Observable.error(new IOException("No server found"));
+            return service.deleteLinkRx(link.getItemName(), link.getChannelUID());
         }
 
         @Override

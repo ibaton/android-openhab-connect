@@ -2,7 +2,9 @@ package se.treehou.ng.ohcommunicator.connector;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -32,8 +34,14 @@ public interface OpenHabService {
     @PUT("/rest/links/{itemName}/{channelUID}")
     Call<Void> createLink(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
 
+    @PUT("/rest/links/{itemName}/{channelUID}")
+    Observable<Response<ResponseBody>> createLinkRx(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
+
     @DELETE("/rest/links/{itemName}/{channelUID}")
     Call<Void> deleteLink(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
+
+    @DELETE("/rest/links/{itemName}/{channelUID}")
+    Observable<Response<ResponseBody>> deleteLinkRx(@Path("itemName") String itemName, @Path("channelUID") String channelUID);
 
     @Headers("Accept: application/json")
     @GET("/rest/inbox")

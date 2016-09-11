@@ -2,8 +2,10 @@ package se.treehou.ng.ohcommunicator.services;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import rx.Observable;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
@@ -48,9 +50,9 @@ public interface IServerHandler {
      * Create a link object.
      *
      * @param link the link to create
-     * @param callback listener for response
+     * @return Observable with response
      */
-    void createLink(OHLink link, Callback<Void> callback);
+    Observable<Response<ResponseBody>> createLinkRx(OHLink link);
 
     /**
      * Delete a link object.
@@ -63,9 +65,9 @@ public interface IServerHandler {
      * Delete a link object.
      *
      * @param link the link to delete
-     * @param callback listener for response
+     * @return Observable with response
      */
-    void deleteLink(OHLink link, Callback<Void> callback);
+    Observable<Response<ResponseBody>> deleteLinkRx(OHLink link);
 
     /**
      * Request updates to page.
