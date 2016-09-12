@@ -112,7 +112,7 @@ public class OHThing {
     }
 
     public static class OHChannel{
-        //private List<String> linkedItems;
+        private List<String> linkedItems;
         private String uid;
         private String id;
         private String channelTypeUID;
@@ -121,13 +121,13 @@ public class OHThing {
         private Map<String, String> configuration;
         private Map<String, String> properties;
 
-        /*public List<String> getLinkedItems() {
+        public List<String> getLinkedItems() {
             return linkedItems;
         }
 
         public void setLinkedItems(List<String> linkedItems) {
             this.linkedItems = linkedItems;
-        }*/
+        }
 
         public String getUid() {
             return uid;
@@ -192,8 +192,8 @@ public class OHThing {
 
             OHChannel ohChannel = (OHChannel) o;
 
-            /*if (linkedItems != null ? !linkedItems.equals(ohChannel.linkedItems) : ohChannel.linkedItems != null)
-                return false;*/
+            if (linkedItems != null ? !linkedItems.equals(ohChannel.linkedItems) : ohChannel.linkedItems != null)
+                return false;
             if (uid != null ? !uid.equals(ohChannel.uid) : ohChannel.uid != null) return false;
             if (id != null ? !id.equals(ohChannel.id) : ohChannel.id != null) return false;
             if (channelTypeUID != null ? !channelTypeUID.equals(ohChannel.channelTypeUID) : ohChannel.channelTypeUID != null)
@@ -210,7 +210,7 @@ public class OHThing {
 
         @Override
         public int hashCode() {
-            int result = /*linkedItems != null ? linkedItems.hashCode() : */0;
+            int result = linkedItems != null ? linkedItems.hashCode() : 0;
             result = 31 * result + (uid != null ? uid.hashCode() : 0);
             result = 31 * result + (id != null ? id.hashCode() : 0);
             result = 31 * result + (channelTypeUID != null ? channelTypeUID.hashCode() : 0);
