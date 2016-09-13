@@ -16,6 +16,9 @@
 #   public *;
 #}
 
+-dontoptimize
+-dontobfuscate
+
 -keep class io.realm.annotations.RealmModule
 -keep @io.realm.annotations.RealmModule class *
 -keep class io.realm.internal.Keep
@@ -25,3 +28,9 @@
 
 -dontwarn org.apache.http.**
 -dontwarn android.net.http.AndroidHttpClient
+
+# WAsync + AHC dependencies
+# TODO Check if Grizzly can be replaced with Apache Http Client
+# For WAsync 1.4.3
+-dontwarn com.ning.http.client.providers.**
+-dontwarn com.ning.http.util.**

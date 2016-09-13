@@ -38,8 +38,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'org.atmosphere:wasync:2.1.2'
-    compile 'com.koushikdutta.async:androidasync:2.1.7'
+    //compile 'com.koushikdutta.async:androidasync:2.1.9'
     compile 'javax.jmdns:jmdns:3.4.1'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
@@ -51,6 +50,8 @@ dependencies {
     compile 'commons-io:commons-io:2.5'
     compile 'com.google.code.gson:gson:2.5'
     compile 'com.android.support:multidex:1.0.1'
+
+    compile 'com.loopj.android:android-async-http:1.4.9'
 
     testCompile 'junit:junit:4.12'
 
