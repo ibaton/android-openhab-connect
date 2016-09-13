@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.message.BasicHeader;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -274,7 +275,7 @@ public class Connector implements IConnector {
 
                         @Override
                         public void onError() {
-                            // TODO pass errors
+                            subscriber.onError(new IOException());
                         }
                     });
 
@@ -559,6 +560,7 @@ public class Connector implements IConnector {
             private final OHLinkedPage page;
             private AsyncHttpClient asyncHttpClient;
             private final OHCallback<OHLinkedPage> callback;
+            private List<BasicHeader> headers;
 
             public PageRequestTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
                 this.server = server;
@@ -569,7 +571,16 @@ public class Connector implements IConnector {
             protected void start(Context context) {
 
                 asyncHttpClient = createAsyncClient(server);
-                asyncHttpClient.get(context, page.getLink(), new AsyncHttpResponseHandler() {
+                headers = generateHeaders();
+                requestPage(context);
+            }
+
+            public void stop() {
+                asyncHttpClient.cancelAllRequests(true);
+            }
+
+            private void requestPage(final Context context){
+                asyncHttpClient.get(context, page.getLink(), headers.toArray(new BasicHeader[] {}), null,  new AsyncHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         try {
@@ -578,22 +589,20 @@ public class Connector implements IConnector {
                             Gson gson = GsonHelper.createGsonBuilder();
                             OHLinkedPage linkedPage = gson.fromJson(jsonString, OHLinkedPage.class);
                             callback.onUpdate(new OHResponse.Builder<>(linkedPage).build());
+
+                            requestPage(context);
                         } catch (Exception error) {
-                            callback.onError();
                             error.printStackTrace();
+                            callback.onError();
                         }
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        callback.onError();
                         error.printStackTrace();
+                        callback.onError();
                     }
                 });
-            }
-
-            public void stop() {
-                asyncHttpClient.cancelAllRequests(true);
             }
 
             /**
@@ -610,19 +619,25 @@ public class Connector implements IConnector {
                     client = new AsyncHttpClient();
                 }
 
-                UUID atmosphereId = UUID.randomUUID();
-                client.addHeader("Accept", "application/json");
-                client.addHeader("Accept-Charset", "utf-8");
-                client.addHeader("X-Atmosphere-Framework", "1.0");
-                client.addHeader("X-Atmosphere-Transport", "long-polling");
-                client.addHeader("X-Atmosphere-tracking-id", atmosphereId.toString());
-
                 if(server.requiresAuth()) {
                     client.setBasicAuth(server.getUsername(), server.getPassword());
                 }
                 client.setTimeout(30000);
 
                 return client;
+            }
+
+            private List<BasicHeader> generateHeaders(){
+                UUID atmosphereId = UUID.randomUUID();
+
+                List<BasicHeader> headers = new ArrayList<>();
+                headers.add(new BasicHeader("Accept", "application/json"));
+                headers.add(new BasicHeader("Accept-Charset", "utf-8"));
+                headers.add(new BasicHeader("X-Atmosphere-Framework", "1.0"));
+                headers.add(new BasicHeader("X-Atmosphere-Transport", "long-polling"));
+                headers.add(new BasicHeader("X-Atmosphere-tracking-id", atmosphereId.toString()));
+
+                return headers;
             }
         }
     }
