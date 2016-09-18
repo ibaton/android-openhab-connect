@@ -3,28 +3,20 @@ package se.treehou.ng.ohcommunicator.services;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.Realm;
-
-import org.atmosphere.wasync.Client;
-import org.atmosphere.wasync.ClientFactory;
-import org.atmosphere.wasync.Decoder;
-import org.atmosphere.wasync.Event;
-import org.atmosphere.wasync.Function;
-import org.atmosphere.wasync.OptionsBuilder;
-import org.atmosphere.wasync.RequestBuilder;
-import org.atmosphere.wasync.Socket;
-import org.atmosphere.wasync.impl.AtmosphereClient;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.SyncHttpClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import cz.msebera.android.httpclient.Header;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,7 +29,6 @@ import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
 import se.treehou.ng.ohcommunicator.connector.ConnectorUtil;
 import se.treehou.ng.ohcommunicator.connector.GsonHelper;
 import se.treehou.ng.ohcommunicator.connector.OpenHabService;
-import se.treehou.ng.ohcommunicator.connector.TrustModifier;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
@@ -175,17 +166,17 @@ public class Connector implements IConnector {
             if(service == null || itemCallback == null) return;
 
             service.getItem(itemName).enqueue(
-            new Callback<OHItem>() {
-                  @Override
-                  public void onResponse(Call<OHItem> call, Response<OHItem> response) {
-                      itemCallback.onUpdate(new OHResponse.Builder<>(response.body()).build());
-                  }
+                    new Callback<OHItem>() {
+                        @Override
+                        public void onResponse(Call<OHItem> call, Response<OHItem> response) {
+                            itemCallback.onUpdate(new OHResponse.Builder<>(response.body()).build());
+                        }
 
-                  @Override
-                  public void onFailure(Call<OHItem> call, Throwable t) {
-                        itemCallback.onError();
-                  }
-              });
+                        @Override
+                        public void onFailure(Call<OHItem> call, Throwable t) {
+                            itemCallback.onError();
+                        }
+                    });
 
         }
 
@@ -256,7 +247,7 @@ public class Connector implements IConnector {
         @Override
         public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
             PageRequestTask task = new PageRequestTask(server, page, callback);
-            task.start();
+            task.start(context);
             return task;
         }
 
@@ -294,7 +285,7 @@ public class Connector implements IConnector {
                         }
                     }));
                 }
-            });
+            }).repeat().retry();
         }
 
         @Override
@@ -552,7 +543,7 @@ public class Connector implements IConnector {
         public Observable<List<OHSitemap>> requestSitemapRx(){
             OpenHabService service = getService();
             if(service == null) return Observable.error(new NoServerFoundException());
-             return service.listSitemapsRx();
+            return service.listSitemapsRx();
         }
 
         @Override
@@ -562,24 +553,11 @@ public class Connector implements IConnector {
             return service.listThingsRx();
         }
 
-        private static class OHPageDecoder implements Decoder<String, OHLinkedPage> {
-            @Override
-            public OHLinkedPage decode(Event event, String s) {
-                Log.d(TAG, "wasync Decoder " + event + " " + s);
-                if(Event.MESSAGE == event && !s.equals("Unauthorized")) {
-                    Gson gson = GsonHelper.createGsonBuilder();
-                    return gson.fromJson(s, OHLinkedPage.class);
-                }
-                return null;
-            }
-        }
-
         public static class PageRequestTask {
 
             private final OHServer server;
-            private AsyncHttpClient asyncHttpClient;
             private final OHLinkedPage page;
-            private Socket socket;
+            private AsyncHttpClient asyncHttpClient;
             private final OHCallback<OHLinkedPage> callback;
 
             public PageRequestTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
@@ -588,65 +566,63 @@ public class Connector implements IConnector {
                 this.callback = callback;
             }
 
-            protected void start() {
+            protected void start(Context context) {
 
-                com.ning.http.client.Realm clientRealm = null;
-                if (server.requiresAuth()) {
-                    clientRealm = new Realm.RealmBuilder()
-                            .setPrincipal(server.getUsername())
-                            .setPassword(server.getPassword())
-                            .setUsePreemptiveAuth(true)
-                            .setScheme(Realm.AuthScheme.BASIC)
-                            .build();
-                }
-
-                asyncHttpClient = new AsyncHttpClient(
-                        new AsyncHttpClientConfig.Builder()
-                                .setAcceptAnyCertificate(true)
-                                .setHostnameVerifier(new TrustModifier.NullHostNameVerifier())
-                                .setRealm(clientRealm)
-                                .build()
-                );
-
-                Client client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
-                OptionsBuilder optBuilder = client.newOptionsBuilder().runtime(asyncHttpClient);
-
-                UUID atmosphereId = UUID.randomUUID();
-                RequestBuilder request = client.newRequestBuilder()
-                        .method(org.atmosphere.wasync.Request.METHOD.GET)
-                        .uri(page.getLink())
-                        .header("Accept", "application/json")
-                        .header("Accept-Charset", "utf-8")
-                        .header("X-Atmosphere-Transport", "long-polling")
-                        .header("X-Atmosphere-tracking-id", atmosphereId.toString())
-                        .decoder(new OHPageDecoder())
-                        .transport(org.atmosphere.wasync.Request.TRANSPORT.LONG_POLLING);
-
-                socket = client.create(optBuilder.build());
-                socket.on(new Function<OHLinkedPage>() {
+                asyncHttpClient = createAsyncClient(server);
+                asyncHttpClient.get(context, page.getLink(), new AsyncHttpResponseHandler() {
                     @Override
-                    public void on(OHLinkedPage page) {
-                        Log.d(TAG, "wasync Socket received");
-                        callback.onUpdate(new OHResponse.Builder<>(page).build());
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        try {
+                            String jsonString = new String(responseBody, "UTF-8");
+                            Log.d(TAG, "HttpClient onSuccess received " + jsonString);
+                            Gson gson = GsonHelper.createGsonBuilder();
+                            OHLinkedPage linkedPage = gson.fromJson(jsonString, OHLinkedPage.class);
+                            callback.onUpdate(new OHResponse.Builder<>(linkedPage).build());
+                        } catch (Exception error) {
+                            callback.onError();
+                            error.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        callback.onError();
+                        error.printStackTrace();
                     }
                 });
-
-                Log.d(TAG, "wasync Socket " + socket + " " + request.uri());
-
-                try {
-                    socket.open(request.build());
-                } catch (IOException | ExceptionInInitializerError e) {
-                    Log.d(TAG, "wasync Got error " + e);
-                }
             }
 
             public void stop() {
-                if (socket != null) {
-                    socket.close();
+                asyncHttpClient.cancelAllRequests(true);
+            }
+
+            /**
+             * Creates a async http client using server data for authentication.
+             * @param server the server to connect to.
+             * @return http server.
+             */
+            private AsyncHttpClient createAsyncClient(OHServer server){
+
+                AsyncHttpClient client;
+                if (Looper.myLooper() == null) {
+                    client = new SyncHttpClient();
+                } else {
+                    client = new AsyncHttpClient();
                 }
-                if (asyncHttpClient != null) {
-                    asyncHttpClient.close();
+
+                UUID atmosphereId = UUID.randomUUID();
+                client.addHeader("Accept", "application/json");
+                client.addHeader("Accept-Charset", "utf-8");
+                client.addHeader("X-Atmosphere-Framework", "1.0");
+                client.addHeader("X-Atmosphere-Transport", "long-polling");
+                client.addHeader("X-Atmosphere-tracking-id", atmosphereId.toString());
+
+                if(server.requiresAuth()) {
+                    client.setBasicAuth(server.getUsername(), server.getPassword());
                 }
+                client.setTimeout(30000);
+
+                return client;
             }
         }
     }
