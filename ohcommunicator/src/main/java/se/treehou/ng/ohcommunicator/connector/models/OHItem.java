@@ -4,14 +4,14 @@ import com.google.gson.annotations.Expose;
 
 public class OHItem {
 
-    public static final String TYPE_SWITCH = "SwitchItem";
-    public static final String TYPE_STRING = "StringItem";
-    public static final String TYPE_COLOR = "ColorItem";
-    public static final String TYPE_NUMBER = "NumberItem";
-    public static final String TYPE_CONTACT = "ContactItem";
-    public static final String TYPE_ROLLERSHUTTER = "RollershutterItem";
-    public static final String TYPE_GROUP = "GroupItem";
-    public static final String TYPE_DIMMER = "DimmerItem";
+    public static final String TYPE_SWITCH = "Switch";
+    public static final String TYPE_STRING = "String";
+    public static final String TYPE_COLOR = "Color";
+    public static final String TYPE_NUMBER = "Number";
+    public static final String TYPE_CONTACT = "Contact";
+    public static final String TYPE_ROLLERSHUTTER = "Rollershutter";
+    public static final String TYPE_GROUP = "Group";
+    public static final String TYPE_DIMMER = "Dimmer";
 
     @Expose(serialize = false, deserialize = false)
     private long id;
