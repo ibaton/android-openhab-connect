@@ -9,7 +9,7 @@ public class OHLinkedPage {
 
     private String id = "";
     private String link;
-    private String title;
+    private String title = "";
     private boolean leaf;
     private List<OHWidget> widget = new ArrayList<>();
 
