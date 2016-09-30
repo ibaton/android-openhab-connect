@@ -286,7 +286,7 @@ public class Connector implements IConnector {
                         }
                     }));
                 }
-            }).repeat().retry();
+            }).repeat();
         }
 
         @Override
