@@ -81,6 +81,7 @@ public class Connector implements IConnector {
                 openHabService = generateOpenHabService(server, getUrl());
             } catch (Exception e){
                 Log.e(TAG, "Error while generating server", e);
+                openHabService = null;
             }
         }
 
