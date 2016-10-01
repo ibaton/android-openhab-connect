@@ -57,7 +57,7 @@ public class Connector implements IConnector {
      * @param url the url to connect to
      * @return Service used to communicate with openhab.
      */
-    private static OpenHabService generateOpenHabService(OHServer server, String url){
+    private static OpenHabService generateOpenHabService(OHServer server, String url) throws IllegalArgumentException {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
     }
 
@@ -77,7 +77,15 @@ public class Connector implements IConnector {
             this.server = server;
             this.context = context;
 
-            openHabService = generateOpenHabService(server, getUrl());
+            try {
+                openHabService = generateOpenHabService(server, getUrl());
+            } catch (Exception e){
+                Log.e(TAG, "Error while generating server", e);
+            }
+        }
+
+        public boolean validSetup(){
+            return openHabService != null;
         }
 
         /**
@@ -94,7 +102,12 @@ public class Connector implements IConnector {
         @Override
         public void requestBindings(final OHCallback<List<OHBinding>> bindingCallback){
             OpenHabService service = getService();
-            if(service == null || bindingCallback == null) return;
+            if(bindingCallback == null){
+                return;
+            } else if(!validSetup()) {
+                bindingCallback.onError();
+                return;
+            }
 
             service.listBindings().enqueue(new Callback<List<OHBinding>>() {
                 @Override
@@ -119,7 +132,7 @@ public class Connector implements IConnector {
         @Override
         public Observable<List<OHBinding>> requestBindingsRx(){
             OpenHabService service = getService();
-            if(service == null) return null;
+            if(!validSetup()) return Observable.empty();
 
             return service.listBindingsRx();
         }
@@ -132,7 +145,12 @@ public class Connector implements IConnector {
         @Override
         public void requestInboxItems(final OHCallback<List<OHInboxItem>> inboxCallback){
             OpenHabService service = getService();
-            if(service == null || inboxCallback == null) return;
+            if(inboxCallback == null){
+                return;
+            } else if(!validSetup()){
+                inboxCallback.onError();
+                return;
+            }
 
             service.listInboxItems().enqueue(new Callback<List<OHInboxItem>>() {
                 @Override
@@ -156,7 +174,7 @@ public class Connector implements IConnector {
         @Override
         public Observable<List<OHInboxItem>> requestInboxItemsRx(){
             OpenHabService service = getService();
-            if(service == null) return null;
+            if(!validSetup()) return Observable.empty();
 
             return service.listInboxItemsRx();
         }
@@ -164,7 +182,12 @@ public class Connector implements IConnector {
         @Override
         public void requestItem(String itemName, final OHCallback<OHItem> itemCallback){
             OpenHabService service = getService();
-            if(service == null || itemCallback == null) return;
+            if(itemCallback == null){
+                return;
+            } else if (!validSetup()){
+                itemCallback.onError();
+                return;
+            }
 
             service.getItem(itemName).enqueue(
                     new Callback<OHItem>() {
@@ -184,7 +207,7 @@ public class Connector implements IConnector {
         @Override
         public Observable<OHItem> requestItemRx(String itemName){
             OpenHabService service = getService();
-            if(service == null) return Observable.never();
+            if(!validSetup()) return Observable.never();
 
             return service.getItemRx(itemName).asObservable();
         }
@@ -192,7 +215,12 @@ public class Connector implements IConnector {
         @Override
         public void requestLinks(final OHCallback<List<OHLink>> callback){
             OpenHabService service = getService();
-            if(service == null || callback == null) return;
+            if(callback == null){
+                return;
+            } else if(!validSetup()){
+                callback.onError();
+                return;
+            }
 
             service.listLinks().enqueue(new Callback<List<OHLink>>() {
                 @Override
@@ -212,7 +240,7 @@ public class Connector implements IConnector {
         @Override
         public Observable<List<OHLink>> requestLinksRx(){
             OpenHabService service = getService();
-            if(service == null) return Observable.never();
+            if(!validSetup()) return Observable.never();
 
             return service.listLinksRx();
         }
@@ -220,28 +248,28 @@ public class Connector implements IConnector {
         @Override
         public void createLink(OHLink link){
             OpenHabService service = getService();
-            if(service == null || link == null) return;
+            if(!validSetup() || link == null) return;
             service.createLink(link.getItemName(), link.getChannelUID());
         }
 
         @Override
         public Observable<Response<ResponseBody>> createLinkRx(OHLink link){
             OpenHabService service = getService();
-            if(service == null || link == null) return Observable.error(new IOException("No server found"));
+            if(!validSetup() || link == null) return Observable.error(new IOException("No server found"));
             return service.createLinkRx(link.getItemName(), link.getChannelUID());
         }
 
         @Override
         public void deleteLink(OHLink link){
             OpenHabService service = getService();
-            if(service == null || link == null) return;
+            if(!validSetup() || link == null) return;
             service.deleteLink(link.getItemName(), link.getChannelUID());
         }
 
         @Override
         public Observable<Response<ResponseBody>> deleteLinkRx(OHLink link){
             OpenHabService service = getService();
-            if(service == null || link == null) return Observable.error(new IOException("No server found"));
+            if(!validSetup() || link == null) return Observable.error(new IOException("No server found"));
             return service.deleteLinkRx(link.getItemName(), link.getChannelUID());
         }
 
@@ -292,7 +320,10 @@ public class Connector implements IConnector {
         @Override
         public void requestItems(final OHCallback<List<OHItem>> itemCallback){
             OpenHabService service = getService();
-            if(service == null || itemCallback == null){
+            if(itemCallback == null){
+                return;
+            } else if(!validSetup()){
+                itemCallback.onError();
                 return;
             }
 
@@ -318,8 +349,8 @@ public class Connector implements IConnector {
         @Override
         public Observable<List<OHItem>> requestItemsRx(){
             OpenHabService service = getService();
-            if(service == null){
-                return null;
+            if(!validSetup()){
+                return Observable.empty();
             }
 
             return service.listItemsRx();
@@ -334,6 +365,13 @@ public class Connector implements IConnector {
         @Override
         public void requestPage(OHLinkedPage page, final OHCallback<OHLinkedPage> responseListener) {
             OpenHabService service = getService();
+            if(responseListener == null){
+                return;
+            } else if(!validSetup()){
+                responseListener.onError();
+                return;
+            }
+
             service.getPage(page.getLink()).enqueue(new Callback<OHLinkedPage>() {
                 @Override
                 public void onResponse(Call<OHLinkedPage> call, Response<OHLinkedPage> response) {
@@ -358,6 +396,9 @@ public class Connector implements IConnector {
         @Override
         public Observable<OHLinkedPage> requestPageRx(OHLinkedPage page) {
             OpenHabService service = getService();
+            if(!validSetup()){
+                return Observable.empty();
+            }
             return service.getPageRx(page.getLink());
         }
 
@@ -424,7 +465,7 @@ public class Connector implements IConnector {
         @Override
         public void approveInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
-            if(service == null) return;
+            if(!validSetup()) return;
 
             service.approveInboxItems(inboxItem.getThingUID()).enqueue(new Callback<Void>() {
                 @Override
@@ -448,7 +489,7 @@ public class Connector implements IConnector {
         @Override
         public void ignoreInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
-            if(service == null) return;
+            if(!validSetup()) return;
 
             service.ignoreInboxItems(inboxItem.getThingUID()).enqueue(new Callback<Void>() {
                 @Override
@@ -473,7 +514,7 @@ public class Connector implements IConnector {
         @Override
         public void unignoreInboxItem(OHInboxItem inboxItem){
             OpenHabService service = getService();
-            if(service == null) return;
+            if(!validSetup()) return;
 
             service.unignoreInboxItems(inboxItem.getThingUID()).enqueue(new Callback<Void>() {
                 @Override
@@ -492,7 +533,7 @@ public class Connector implements IConnector {
         @Override
         public void sendCommand(final String item, final String command){
             OpenHabService service = getService();
-            if(service == null) return;
+            if(!validSetup()) return;
 
             service.sendCommand(command, item).enqueue(new Callback<Void>() {
                 @Override
@@ -514,7 +555,9 @@ public class Connector implements IConnector {
         @Override
         public void requestSitemaps(final OHCallback<List<OHSitemap>> sitemapsCallback){
             OpenHabService service = getService();
-            if(service == null) {
+            if(sitemapsCallback == null){
+                return;
+            } else if(!validSetup()) {
                 Log.d(TAG, "Failed to request sitemap, service is null");
                 sitemapsCallback.onError();
                 return;
@@ -543,14 +586,14 @@ public class Connector implements IConnector {
         @Override
         public Observable<List<OHSitemap>> requestSitemapRx(){
             OpenHabService service = getService();
-            if(service == null) return Observable.error(new NoServerFoundException());
+            if(!validSetup()) return Observable.error(new NoServerFoundException());
             return service.listSitemapsRx();
         }
 
         @Override
         public Observable<List<OHThing>> requestThingsRx() {
             OpenHabService service = getService();
-            if(service == null) return Observable.error(new NoServerFoundException());
+            if(!validSetup()) return Observable.error(new NoServerFoundException());
             return service.listThingsRx();
         }
 
