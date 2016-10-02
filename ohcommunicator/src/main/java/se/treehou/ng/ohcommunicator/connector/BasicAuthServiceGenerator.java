@@ -6,22 +6,23 @@ import android.util.Log;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
-import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.Route;
 import okhttp3.internal.platform.Platform;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
+import se.treehou.ng.ohcommunicator.util.ConnectorUtil;
+import se.treehou.ng.ohcommunicator.util.GsonHelper;
 
 public class BasicAuthServiceGenerator {
 
@@ -31,8 +32,16 @@ public class BasicAuthServiceGenerator {
     private BasicAuthServiceGenerator() {}
 
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url) {
+        return createService(serviceClass, usernarname, password, url, -1);
+    }
+
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout) {
 
         OkHttpClient.Builder client = new OkHttpClient.Builder();
+
+        if(timeout > 0){
+            client.readTimeout(timeout, TimeUnit.MILLISECONDS);
+        }
 
         if(!TextUtils.isEmpty(usernarname) && !TextUtils.isEmpty(password)) {
             client.addInterceptor(new Interceptor() {
@@ -75,7 +84,7 @@ public class BasicAuthServiceGenerator {
             retrofit = builder.build();
         } catch (Exception e) {
             Log.e(TAG, "Failed to generate service", e);
-            throw e;
+            return null;
         }
 
         return retrofit.create(serviceClass);

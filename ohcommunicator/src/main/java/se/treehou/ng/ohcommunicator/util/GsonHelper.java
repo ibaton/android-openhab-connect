@@ -1,4 +1,4 @@
-package se.treehou.ng.ohcommunicator.connector;
+package se.treehou.ng.ohcommunicator.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

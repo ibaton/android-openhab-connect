@@ -1,4 +1,4 @@
-package se.treehou.ng.ohcommunicator.connector;
+package se.treehou.ng.ohcommunicator.util;
 
 import android.net.Uri;
 import android.text.TextUtils;

@@ -71,23 +71,12 @@ public interface IServerHandler {
     Observable<Response<ResponseBody>> deleteLinkRx(OHLink link);
 
     /**
-     * Request updates to page.
-     *
-     * @param server   the server to connect to.
-     * @param page     the page.
-     * @param callback request callback.
-     * @return cancelable request.
-     */
-    Connector.ServerHandler.PageRequestTask requestPageUpdates(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback);
-
-    /**
      * Request updates for page rx
      *
-     * @param server the server to connect to.
      * @param page   the page to fetch updates for
      * @return observable returning updates for page.
      */
-    Observable<OHLinkedPage> requestPageUpdatesRx(OHServer server, OHLinkedPage page);
+    Observable<OHLinkedPage> requestPageUpdatesRx(OHLinkedPage page);
 
     /**
      * Request item data.

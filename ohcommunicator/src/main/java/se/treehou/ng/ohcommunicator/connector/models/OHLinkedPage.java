@@ -3,7 +3,7 @@ package se.treehou.ng.ohcommunicator.connector.models;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.treehou.ng.ohcommunicator.connector.ConnectorUtil;
+import se.treehou.ng.ohcommunicator.util.ConnectorUtil;
 
 public class OHLinkedPage {
 

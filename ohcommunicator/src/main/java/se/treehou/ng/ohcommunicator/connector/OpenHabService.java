@@ -8,6 +8,7 @@ import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -103,11 +104,20 @@ public interface OpenHabService {
 
     @Headers("Accept: application/json")
     @GET
-    Call<OHLinkedPage> getPage(@Url String utl);
+    Call<OHLinkedPage> getPage(@Url String url);
+
+    @Headers(
+            {"Accept: application/json",
+            "Accept:application/json",
+            "Accept-Charset:utf-8",
+            "X-Atmosphere-Framework: 1.0",
+            "X-Atmosphere-Transport: long-polling"})
+    @GET
+    Observable<OHLinkedPage> getPageUpdatesRx(@Header("X-Atmosphere-tracking-id") String atmosphereId, @Url String url);
 
     @Headers("Accept: application/json")
     @GET
-    Observable<OHLinkedPage> getPageRx(@Url String utl);
+    Observable<OHLinkedPage> getPageRx(@Url String url);
 
     @Headers({
             "Accept: application/text",

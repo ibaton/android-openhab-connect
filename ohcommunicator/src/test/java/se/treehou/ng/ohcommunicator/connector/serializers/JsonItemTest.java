@@ -9,9 +9,8 @@ import org.junit.Test;
 
 import java.util.List;
 
-import se.treehou.ng.ohcommunicator.connector.GsonHelper;
+import se.treehou.ng.ohcommunicator.util.GsonHelper;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
-import se.treehou.ng.ohcommunicator.connector.models.OHStateDescription;
 import se.treehou.ng.ohcommunicator.connector.models.OHThing;
 
 public class JsonItemTest {

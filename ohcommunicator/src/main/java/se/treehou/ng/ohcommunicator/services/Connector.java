@@ -3,32 +3,22 @@ package se.treehou.ng.ohcommunicator.services;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Looper;
 import android.util.Log;
-
-import com.google.gson.Gson;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.SyncHttpClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.message.BasicHeader;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
+import rx.functions.Func1;
 import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
-import se.treehou.ng.ohcommunicator.connector.ConnectorUtil;
-import se.treehou.ng.ohcommunicator.connector.GsonHelper;
+import se.treehou.ng.ohcommunicator.util.ConnectorUtil;
 import se.treehou.ng.ohcommunicator.connector.OpenHabService;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
@@ -40,10 +30,13 @@ import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 import se.treehou.ng.ohcommunicator.connector.models.OHThing;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
+import se.treehou.ng.ohcommunicator.util.RxUtil;
 
 public class Connector implements IConnector {
 
     private static final String TAG = Connector.class.getSimpleName();
+
+    private static final int LONG_POLLING_TIMEOUT = 30*1000;
 
     private Context context;
 
@@ -59,6 +52,10 @@ public class Connector implements IConnector {
      */
     private static OpenHabService generateOpenHabService(OHServer server, String url) throws IllegalArgumentException {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
+    }
+
+    private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT);
     }
 
     @Override
@@ -98,6 +95,15 @@ public class Connector implements IConnector {
             openHabService = generateOpenHabService(server, getUrl());
 
             return openHabService;
+        }
+
+        /**
+         * Generate an openhab service used to connect to server using long polling.
+         *
+         * @return openhab service.
+         */
+        private OpenHabService getLongPollingService(){
+            return generateOpenHabServiceLongPolling(server, getUrl());
         }
 
         @Override
@@ -274,48 +280,22 @@ public class Connector implements IConnector {
             return service.deleteLinkRx(link.getItemName(), link.getChannelUID());
         }
 
-        @Override
-        public PageRequestTask requestPageUpdates(final OHServer server, final OHLinkedPage page, final OHCallback<OHLinkedPage> callback) {
-            PageRequestTask task = new PageRequestTask(server, page, callback);
-            task.start(context);
-            return task;
-        }
-
         /**
          * Creates rx observable listening for page updates.
          *
-         * @param server the server to connect to.
          * @param page the page to listen for.
          * @return page observable.
          */
         @Override
-        public Observable<OHLinkedPage> requestPageUpdatesRx(final OHServer server, final OHLinkedPage page) {
+        public Observable<OHLinkedPage> requestPageUpdatesRx(final OHLinkedPage page) {
+            OpenHabService service = getLongPollingService();
+            if(!validSetup()) return Observable.never();
 
-            return Observable.create(new Observable.OnSubscribe<OHLinkedPage>(){
-                @Override
-                public void call(final Subscriber<? super OHLinkedPage> subscriber) {
-                    final PageRequestTask pageRequestTask = requestPageUpdates(server, page, new OHCallback<OHLinkedPage>() {
-                        @Override
-                        public void onUpdate(OHResponse<OHLinkedPage> items) {
-                            if(!subscriber.isUnsubscribed()) {
-                                subscriber.onNext(items.body());
-                            }
-                        }
+            UUID atmosphereId = UUID.randomUUID();
+            return service.getPageUpdatesRx(atmosphereId.toString(), page.getLink())
+                    .retryWhen(RxUtil.RetryOnTimeout)
+                    .repeat();
 
-                        @Override
-                        public void onError() {
-                            subscriber.onError(new IOException());
-                        }
-                    });
-
-                    subscriber.add(Subscriptions.create(new Action0() {
-                        @Override
-                        public void call() {
-                            pageRequestTask.stop();
-                        }
-                    }));
-                }
-            }).repeat();
         }
 
         @Override
@@ -596,93 +576,6 @@ public class Connector implements IConnector {
             OpenHabService service = getService();
             if(!validSetup()) return Observable.error(new NoServerFoundException());
             return service.listThingsRx();
-        }
-
-        public static class PageRequestTask {
-
-            private final OHServer server;
-            private final OHLinkedPage page;
-            private AsyncHttpClient asyncHttpClient;
-            private final OHCallback<OHLinkedPage> callback;
-            private List<BasicHeader> headers;
-
-            public PageRequestTask(OHServer server, OHLinkedPage page, OHCallback<OHLinkedPage> callback) {
-                this.server = server;
-                this.page = page;
-                this.callback = callback;
-            }
-
-            protected void start(Context context) {
-
-                asyncHttpClient = createAsyncClient(server);
-                headers = generateHeaders();
-                requestPage(context);
-            }
-
-            public void stop() {
-                asyncHttpClient.cancelAllRequests(true);
-            }
-
-            private void requestPage(final Context context){
-                asyncHttpClient.get(context, page.getLink(), headers.toArray(new BasicHeader[] {}), null,  new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        try {
-                            String jsonString = new String(responseBody, "UTF-8");
-                            Log.d(TAG, "HttpClient onSuccess received " + jsonString);
-                            Gson gson = GsonHelper.createGsonBuilder();
-                            OHLinkedPage linkedPage = gson.fromJson(jsonString, OHLinkedPage.class);
-                            callback.onUpdate(new OHResponse.Builder<>(linkedPage).build());
-
-                            requestPage(context);
-                        } catch (Exception error) {
-                            error.printStackTrace();
-                            callback.onError();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        error.printStackTrace();
-                        callback.onError();
-                    }
-                });
-            }
-
-            /**
-             * Creates a async http client using server data for authentication.
-             * @param server the server to connect to.
-             * @return http server.
-             */
-            private AsyncHttpClient createAsyncClient(OHServer server){
-
-                AsyncHttpClient client;
-                if (Looper.myLooper() == null) {
-                    client = new SyncHttpClient();
-                } else {
-                    client = new AsyncHttpClient();
-                }
-
-                if(server.requiresAuth()) {
-                    client.setBasicAuth(server.getUsername(), server.getPassword());
-                }
-                client.setTimeout(30000);
-
-                return client;
-            }
-
-            private List<BasicHeader> generateHeaders(){
-                UUID atmosphereId = UUID.randomUUID();
-
-                List<BasicHeader> headers = new ArrayList<>();
-                headers.add(new BasicHeader("Accept", "application/json"));
-                headers.add(new BasicHeader("Accept-Charset", "utf-8"));
-                headers.add(new BasicHeader("X-Atmosphere-Framework", "1.0"));
-                headers.add(new BasicHeader("X-Atmosphere-Transport", "long-polling"));
-                headers.add(new BasicHeader("X-Atmosphere-tracking-id", atmosphereId.toString()));
-
-                return headers;
-            }
         }
     }
 
