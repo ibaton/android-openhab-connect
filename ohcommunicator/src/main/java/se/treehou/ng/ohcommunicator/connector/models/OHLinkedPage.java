@@ -76,6 +76,9 @@ public class OHLinkedPage {
      * @return widgets on page
      */
     public List<OHWidget> getWidgets() {
+        if(widget == null){
+            return new ArrayList<>();
+        }
         return widget;
     }
 
