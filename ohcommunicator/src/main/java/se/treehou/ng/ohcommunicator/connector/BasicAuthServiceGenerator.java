@@ -75,7 +75,7 @@ public class BasicAuthServiceGenerator {
             retrofit = builder.build();
         } catch (Exception e) {
             Log.e(TAG, "Failed to generate service", e);
-            throw e;
+            return null;
         }
 
         return retrofit.create(serviceClass);
