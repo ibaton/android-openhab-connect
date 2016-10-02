@@ -1,6 +1,7 @@
 package se.treehou.ng.ohcommunicator.connector.models;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 public class OHSitemap {
 
@@ -119,6 +120,9 @@ public class OHSitemap {
      * @return display name for sitemap.
      */
     public String getDisplayName() {
+        if(!TextUtils.isEmpty(label)){
+            return label;
+        }
         return name;
     }
 
