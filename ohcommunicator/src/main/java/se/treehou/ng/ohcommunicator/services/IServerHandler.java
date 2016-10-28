@@ -3,8 +3,6 @@ package se.treehou.ng.ohcommunicator.services;
 import java.util.List;
 
 import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
@@ -12,13 +10,10 @@ import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHItem;
 import se.treehou.ng.ohcommunicator.connector.models.OHLink;
 import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
-import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 import se.treehou.ng.ohcommunicator.connector.models.OHThing;
-import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 
 public interface IServerHandler {
-    void requestBindings(OHCallback<List<OHBinding>> bindingCallback);
 
     /**
      * Request binding as observable.
@@ -26,12 +21,6 @@ public interface IServerHandler {
      * @return binding observable.
      */
     Observable<List<OHBinding>> requestBindingsRx();
-
-    /**
-     * Request links from server.
-     * @param callback callback for links.
-     */
-    void requestLinks(OHCallback<List<OHLink>> callback);
 
     /**
      * Request obserbable emitting links.
@@ -79,26 +68,11 @@ public interface IServerHandler {
     Observable<OHLinkedPage> requestPageUpdatesRx(OHLinkedPage page);
 
     /**
-     * Request item data.
-     *
-     * @param itemCallback
-     */
-    void requestItems(OHCallback<List<OHItem>> itemCallback);
-
-    /**
      * Request items as observable
      *
      * @return item observable.
      */
     Observable<List<OHItem>> requestItemsRx();
-
-    /**
-     * Request item with callback.
-     *
-     * @param itemName     the name of item to fetch.
-     * @param itemCallback callback for item request.
-     */
-    void requestItem(String itemName, OHCallback<OHItem> itemCallback);
 
     /**
      * Request item as observable stream.
@@ -107,14 +81,6 @@ public interface IServerHandler {
      * @return observable emitting openhab items.
      */
     Observable<OHItem> requestItemRx(String itemName);
-
-    /**
-     * Request page with with callback.
-     *
-     * @param page             the page to fetch.
-     * @param responseListener litener for page response.
-     */
-    void requestPage(OHLinkedPage page, OHCallback<OHLinkedPage> responseListener);
 
     /**
      * Request page as observable.
@@ -130,13 +96,6 @@ public interface IServerHandler {
      * @return server url-
      */
     String getUrl();
-
-    /**
-     * Request inbox items from server.
-     *
-     * @param inboxCallback callback from server.
-     */
-    void requestInboxItems(OHCallback<List<OHInboxItem>> inboxCallback);
 
     /**
      * Request inbox items from server
@@ -174,13 +133,6 @@ public interface IServerHandler {
      * @param command the command to send.
      */
     void sendCommand(String item, String command);
-
-    /**
-     * Request sitemap from server.
-     *
-     * @param sitemapsCallback sitemap response.
-     */
-    void requestSitemaps(OHCallback<List<OHSitemap>> sitemapsCallback);
 
     /**
      * Request sitemap as observable.

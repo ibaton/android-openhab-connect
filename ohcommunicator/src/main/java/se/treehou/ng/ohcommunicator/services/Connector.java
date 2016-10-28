@@ -6,10 +6,8 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -27,8 +25,6 @@ import se.treehou.ng.ohcommunicator.connector.models.OHLinkedPage;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.connector.models.OHSitemap;
 import se.treehou.ng.ohcommunicator.connector.models.OHThing;
-import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
-import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
 import se.treehou.ng.ohcommunicator.util.RxUtil;
 
 public class Connector implements IConnector {
@@ -105,31 +101,6 @@ public class Connector implements IConnector {
             return generateOpenHabServiceLongPolling(server, getUrl());
         }
 
-        @Override
-        public void requestBindings(final OHCallback<List<OHBinding>> bindingCallback){
-            OpenHabService service = getService();
-            if(bindingCallback == null){
-                return;
-            } else if(!validSetup()) {
-                bindingCallback.onError();
-                return;
-            }
-
-            service.listBindings().enqueue(new Callback<List<OHBinding>>() {
-                @Override
-                public void onResponse(Call<List<OHBinding>> call, Response<List<OHBinding>> response) {
-                    List<OHBinding> items = response.body();
-                    if(items == null) items = new ArrayList<>();
-                    bindingCallback.onUpdate(new OHResponse.Builder<>(items).build());
-                }
-
-                @Override
-                public void onFailure(Call<List<OHBinding>> call, Throwable t) {
-                    bindingCallback.onError();
-                }
-            });
-        }
-
         /**
          * Request bindings through rx.
          *
@@ -141,36 +112,6 @@ public class Connector implements IConnector {
             if(!validSetup()) return Observable.empty();
 
             return service.listBindingsRx();
-        }
-
-        /**
-         * Ask server for inbox items.
-         *
-         * @param inboxCallback server response callback.
-         */
-        @Override
-        public void requestInboxItems(final OHCallback<List<OHInboxItem>> inboxCallback){
-            OpenHabService service = getService();
-            if(inboxCallback == null){
-                return;
-            } else if(!validSetup()){
-                inboxCallback.onError();
-                return;
-            }
-
-            service.listInboxItems().enqueue(new Callback<List<OHInboxItem>>() {
-                @Override
-                public void onResponse(Call<List<OHInboxItem>> call, Response<List<OHInboxItem>> response) {
-                    List<OHInboxItem> inboxItems = response.body();
-                    if(inboxItems == null) inboxItems = new ArrayList<>();
-                    inboxCallback.onUpdate(new OHResponse.Builder<>(inboxItems).build());
-                }
-
-                @Override
-                public void onFailure(Call<List<OHInboxItem>> call, Throwable t) {
-                    inboxCallback.onError();
-                }
-            });
         }
 
         /**
@@ -186,61 +127,11 @@ public class Connector implements IConnector {
         }
 
         @Override
-        public void requestItem(String itemName, final OHCallback<OHItem> itemCallback){
-            OpenHabService service = getService();
-            if(itemCallback == null){
-                return;
-            } else if (!validSetup()){
-                itemCallback.onError();
-                return;
-            }
-
-            service.getItem(itemName).enqueue(
-                    new Callback<OHItem>() {
-                        @Override
-                        public void onResponse(Call<OHItem> call, Response<OHItem> response) {
-                            itemCallback.onUpdate(new OHResponse.Builder<>(response.body()).build());
-                        }
-
-                        @Override
-                        public void onFailure(Call<OHItem> call, Throwable t) {
-                            itemCallback.onError();
-                        }
-                    });
-
-        }
-
-        @Override
         public Observable<OHItem> requestItemRx(String itemName){
             OpenHabService service = getService();
             if(!validSetup()) return Observable.never();
 
             return service.getItemRx(itemName).asObservable();
-        }
-
-        @Override
-        public void requestLinks(final OHCallback<List<OHLink>> callback){
-            OpenHabService service = getService();
-            if(callback == null){
-                return;
-            } else if(!validSetup()){
-                callback.onError();
-                return;
-            }
-
-            service.listLinks().enqueue(new Callback<List<OHLink>>() {
-                @Override
-                public void onResponse(Call<List<OHLink>> call, Response<List<OHLink>> response) {
-                    List<OHLink> items = response.body();
-                    if(items == null) items = new ArrayList<>();
-                    callback.onUpdate(new OHResponse.Builder<>(items).build());
-                }
-
-                @Override
-                public void onFailure(Call<List<OHLink>> call, Throwable t) {
-                    callback.onError();
-                }
-            });
         }
 
         @Override
@@ -294,31 +185,6 @@ public class Connector implements IConnector {
             return service.getPageUpdatesRx(atmosphereId.toString(), page.getLink())
                     .retryWhen(RxUtil.RetryOnTimeout)
                     .repeat();
-
-        }
-
-        @Override
-        public void requestItems(final OHCallback<List<OHItem>> itemCallback){
-            OpenHabService service = getService();
-            if(itemCallback == null){
-                return;
-            } else if(!validSetup()){
-                itemCallback.onError();
-                return;
-            }
-
-            service.listItems().enqueue(new Callback<List<OHItem>>() {
-                @Override
-                public void onResponse(Call<List<OHItem>> call, Response<List<OHItem>> response) {
-                    for(OHItem item : response.body()) item.setServer(server);
-                    itemCallback.onUpdate(new OHResponse.Builder<>(response.body()).build());
-                }
-
-                @Override
-                public void onFailure(Call<List<OHItem>> call, Throwable t) {
-                    itemCallback.onError();
-                }
-            });
         }
 
         /**
@@ -334,37 +200,6 @@ public class Connector implements IConnector {
             }
 
             return service.listItemsRx();
-        }
-
-        /**
-         * Request page for from server
-         *
-         * @param page the page to fetch.
-         * @param responseListener response listener.
-         */
-        @Override
-        public void requestPage(OHLinkedPage page, final OHCallback<OHLinkedPage> responseListener) {
-            OpenHabService service = getService();
-            if(responseListener == null){
-                return;
-            } else if(!validSetup()){
-                responseListener.onError();
-                return;
-            }
-
-            service.getPage(page.getLink()).enqueue(new Callback<OHLinkedPage>() {
-                @Override
-                public void onResponse(Call<OHLinkedPage> call, Response<OHLinkedPage> response) {
-                    Log.d(TAG, "Received page " + response.message());
-                    responseListener.onUpdate(new OHResponse.Builder<>(response.body()).build());
-                }
-
-                @Override
-                public void onFailure(Call<OHLinkedPage> call, Throwable t) {
-                    Log.e(TAG, "Received page error ", t);
-                    responseListener.onError();
-                }
-            });
         }
 
         /**
@@ -524,37 +359,6 @@ public class Connector implements IConnector {
                 @Override
                 public void onFailure(Call<Void> call, Throwable e) {
                     Log.e(TAG, "Error: sending command " + server.getLocalUrl() + " body: " + command, e);
-                }
-            });
-        }
-
-        /**
-         * Request sitemap from server asyncronusly.
-         * @param sitemapsCallback
-         */
-        @Override
-        public void requestSitemaps(final OHCallback<List<OHSitemap>> sitemapsCallback){
-            OpenHabService service = getService();
-            if(sitemapsCallback == null){
-                return;
-            } else if(!validSetup()) {
-                Log.d(TAG, "Failed to request sitemap, service is null");
-                sitemapsCallback.onError();
-                return;
-            }
-
-            service.listSitemaps().enqueue(new Callback<List<OHSitemap>>() {
-                @Override
-                public void onResponse(Call<List<OHSitemap>> call, Response<List<OHSitemap>> response) {
-                    OHResponse<List<OHSitemap>> sitemapResponse = new OHResponse.Builder<>(response.body())
-                            .fromCache(false)
-                            .build();
-                    sitemapsCallback.onUpdate(sitemapResponse);
-                }
-
-                @Override
-                public void onFailure(Call<List<OHSitemap>> call, Throwable t) {
-                    sitemapsCallback.onError();
                 }
             });
         }
