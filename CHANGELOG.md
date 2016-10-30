@@ -1,3 +1,15 @@
+## 1.3.1
+
+### Bug fixes
+Set server in item when requesting items. 
+
+
+## 1.3.0
+
+### Enhancements
+Removed non rx get requests.
+
+
 ## 1.2.2
 
 ### Enhancements

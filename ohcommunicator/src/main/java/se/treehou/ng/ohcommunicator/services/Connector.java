@@ -14,6 +14,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
+import rx.functions.Func1;
 import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
 import se.treehou.ng.ohcommunicator.util.ConnectorUtil;
 import se.treehou.ng.ohcommunicator.connector.OpenHabService;
@@ -131,7 +132,13 @@ public class Connector implements IConnector {
             OpenHabService service = getService();
             if(!validSetup()) return Observable.never();
 
-            return service.getItemRx(itemName).asObservable();
+            return service.getItemRx(itemName).asObservable().map(new Func1<OHItem, OHItem>() {
+                @Override
+                public OHItem call(OHItem item) {
+                    item.setServer(server);
+                    return item;
+                }
+            });
         }
 
         @Override
@@ -199,7 +206,15 @@ public class Connector implements IConnector {
                 return Observable.empty();
             }
 
-            return service.listItemsRx();
+            return service.listItemsRx().map(new Func1<List<OHItem>, List<OHItem>>() {
+                @Override
+                public List<OHItem> call(List<OHItem> items) {
+                    for(OHItem item : items){
+                        item.setServer(server);
+                    }
+                    return items;
+                }
+            });
         }
 
         /**
