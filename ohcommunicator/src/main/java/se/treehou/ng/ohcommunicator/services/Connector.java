@@ -226,8 +226,8 @@ public class Connector implements IConnector {
         @Override
         public Observable<OHLinkedPage> requestPageRx(OHLinkedPage page) {
             OpenHabService service = getService();
-            if(!validSetup()){
-                return Observable.empty();
+            if(!validSetup() || !page.validLink()){
+                return Observable.error(new PageRequestException());
             }
             return service.getPageRx(page.getLink());
         }

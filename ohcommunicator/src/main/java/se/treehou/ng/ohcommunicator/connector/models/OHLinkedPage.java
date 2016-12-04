@@ -39,6 +39,10 @@ public class OHLinkedPage {
         return link;
     }
 
+    public boolean validLink(){
+        return link != null;
+    }
+
     /***
      * The url to use when accessing page.
      * @param link url for page
