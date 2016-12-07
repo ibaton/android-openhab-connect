@@ -10,6 +10,7 @@ public class OHItem {
     public static final String TYPE_NUMBER = "Number";
     public static final String TYPE_CONTACT = "Contact";
     public static final String TYPE_ROLLERSHUTTER = "Rollershutter";
+    public static final String TYPE_ROLLERSHUTTER_ITEM = "RollershutterItem";
     public static final String TYPE_GROUP = "Group";
     public static final String TYPE_DIMMER = "Dimmer";
 
