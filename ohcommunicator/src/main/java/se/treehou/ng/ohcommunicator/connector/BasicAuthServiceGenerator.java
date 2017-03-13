@@ -8,7 +8,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Credentials;
@@ -35,7 +37,15 @@ public class BasicAuthServiceGenerator {
         return createService(serviceClass, usernarname, password, url, -1);
     }
 
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, X509TrustManager trustManager) {
+        return createService(serviceClass, usernarname, password, url, -1, trustManager);
+    }
+
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout) {
+        return createService(serviceClass, usernarname, password, url, -1, null);
+    }
+
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout, X509TrustManager trustManager) {
 
         OkHttpClient.Builder client = new OkHttpClient.Builder();
 
@@ -61,10 +71,18 @@ public class BasicAuthServiceGenerator {
         }
 
         try {
-            SSLSocketFactory socketFactory = TrustModifier.createFactory();
-            X509TrustManager trustManager = Platform.get().trustManager(socketFactory);
-            client.sslSocketFactory(socketFactory, trustManager);
-            client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
+            if(trustManager == null) {
+                SSLSocketFactory socketFactory = TrustModifier.createFactory();
+                trustManager = Platform.get().trustManager(socketFactory);
+                client.sslSocketFactory(socketFactory, trustManager);
+                client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
+            } else {
+                final SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, new TrustManager[] {trustManager}, new java.security.SecureRandom());
+                // Create an ssl socket factory with our all-trusting manager
+                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                client.sslSocketFactory(sslSocketFactory, trustManager);
+            }
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();
         }

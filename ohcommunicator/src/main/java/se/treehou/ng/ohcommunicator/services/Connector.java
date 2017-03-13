@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.net.ssl.X509TrustManager;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,9 +37,15 @@ public class Connector implements IConnector {
     private static final int LONG_POLLING_TIMEOUT = 30*1000;
 
     private Context context;
+    private X509TrustManager trustManager;
 
     public Connector(Context context) {
         this.context = context;
+    }
+
+    public Connector(Context context, X509TrustManager trustManager) {
+        this.context = context;
+        this.trustManager = trustManager;
     }
 
     /**
@@ -50,25 +58,35 @@ public class Connector implements IConnector {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
     }
 
+    private static OpenHabService generateOpenHabService(OHServer server, String url, X509TrustManager trustModifier) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, trustModifier);
+    }
+
     private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url) throws IllegalArgumentException {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT);
     }
 
+    private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url, X509TrustManager trustModifier) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT, trustModifier);
+    }
+
     @Override
     public IServerHandler getServerHandler(OHServer server){
-        return new ServerHandler(server, context);
+        return new ServerHandler(server, context, trustManager);
     }
 
     public static class ServerHandler implements IServerHandler {
 
         private OHServer server;
         private Context context;
+        private X509TrustManager trustManager;
 
         private OpenHabService openHabService;
 
-        public ServerHandler(OHServer server, Context context) {
+        public ServerHandler(OHServer server, Context context, X509TrustManager trustManager) {
             this.server = server;
             this.context = context;
+            this.trustManager = trustManager;
 
             try {
                 openHabService = generateOpenHabService(server, getUrl());
@@ -88,7 +106,11 @@ public class Connector implements IConnector {
          * @return openhab service.
          */
         private OpenHabService getService(){
-            openHabService = generateOpenHabService(server, getUrl());
+            if(trustManager != null){
+                openHabService = generateOpenHabService(server, getUrl(), trustManager);
+            } else {
+                openHabService = generateOpenHabService(server, getUrl());
+            }
 
             return openHabService;
         }
@@ -99,6 +121,9 @@ public class Connector implements IConnector {
          * @return openhab service.
          */
         private OpenHabService getLongPollingService(){
+            if(trustManager != null){
+                return generateOpenHabServiceLongPolling(server, getUrl(), trustManager);
+            }
             return generateOpenHabServiceLongPolling(server, getUrl());
         }
 
