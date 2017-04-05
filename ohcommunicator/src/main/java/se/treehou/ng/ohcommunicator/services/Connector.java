@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.ResponseBody;
@@ -37,14 +38,16 @@ public class Connector implements IConnector {
     private static final int LONG_POLLING_TIMEOUT = 30*1000;
 
     private Context context;
+    private SSLContext sslContext;
     private X509TrustManager trustManager;
 
     public Connector(Context context) {
         this.context = context;
     }
 
-    public Connector(Context context, X509TrustManager trustManager) {
+    public Connector(Context context, SSLContext sslContext, X509TrustManager trustManager) {
         this.context = context;
+        this.sslContext = sslContext;
         this.trustManager = trustManager;
     }
 
@@ -58,21 +61,21 @@ public class Connector implements IConnector {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url);
     }
 
-    private static OpenHabService generateOpenHabService(OHServer server, String url, X509TrustManager trustModifier) throws IllegalArgumentException {
-        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, trustModifier);
+    private static OpenHabService generateOpenHabService(OHServer server, String url, SSLContext sslContext, X509TrustManager trustModifier) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, sslContext, trustModifier);
     }
 
     private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url) throws IllegalArgumentException {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT);
     }
 
-    private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url, X509TrustManager trustModifier) throws IllegalArgumentException {
-        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT, trustModifier);
+    private static OpenHabService generateOpenHabServiceLongPolling(OHServer server, String url, SSLContext sslContext, X509TrustManager trustModifier) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT, sslContext, trustModifier);
     }
 
     @Override
     public IServerHandler getServerHandler(OHServer server){
-        return new ServerHandler(server, context, trustManager);
+        return new ServerHandler(server, context, sslContext, trustManager);
     }
 
     public static class ServerHandler implements IServerHandler {
@@ -80,16 +83,18 @@ public class Connector implements IConnector {
         private OHServer server;
         private Context context;
         private X509TrustManager trustManager;
+        private SSLContext sslContext;
 
         private OpenHabService openHabService;
 
-        public ServerHandler(OHServer server, Context context, X509TrustManager trustManager) {
+        public ServerHandler(OHServer server, Context context, SSLContext sslContext, X509TrustManager trustManager) {
             this.server = server;
             this.context = context;
             this.trustManager = trustManager;
+            this.sslContext = sslContext;
 
             try {
-                openHabService = generateOpenHabService(server, getUrl());
+                openHabService = generateOpenHabService(server, getUrl(), sslContext, trustManager);
             } catch (Exception e){
                 Log.e(TAG, "Error while generating server", e);
                 openHabService = null;
@@ -107,7 +112,7 @@ public class Connector implements IConnector {
          */
         private OpenHabService getService(){
             if(trustManager != null){
-                openHabService = generateOpenHabService(server, getUrl(), trustManager);
+                openHabService = generateOpenHabService(server, getUrl(), sslContext, trustManager);
             } else {
                 openHabService = generateOpenHabService(server, getUrl());
             }
@@ -122,7 +127,7 @@ public class Connector implements IConnector {
          */
         private OpenHabService getLongPollingService(){
             if(trustManager != null){
-                return generateOpenHabServiceLongPolling(server, getUrl(), trustManager);
+                return generateOpenHabServiceLongPolling(server, getUrl(), sslContext, trustManager);
             }
             return generateOpenHabServiceLongPolling(server, getUrl());
         }

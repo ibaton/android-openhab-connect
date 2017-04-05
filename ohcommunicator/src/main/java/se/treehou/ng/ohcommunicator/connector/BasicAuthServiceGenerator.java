@@ -37,15 +37,15 @@ public class BasicAuthServiceGenerator {
         return createService(serviceClass, usernarname, password, url, -1);
     }
 
-    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, X509TrustManager trustManager) {
-        return createService(serviceClass, usernarname, password, url, -1, trustManager);
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, SSLContext sslContext, X509TrustManager trustManager) {
+        return createService(serviceClass, usernarname, password, url, -1, sslContext , trustManager);
     }
 
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout) {
-        return createService(serviceClass, usernarname, password, url, -1, null);
+        return createService(serviceClass, usernarname, password, url, -1, null, null);
     }
 
-    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout, X509TrustManager trustManager) {
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout, SSLContext sslContext, X509TrustManager trustManager) {
 
         OkHttpClient.Builder client = new OkHttpClient.Builder();
 
@@ -77,7 +77,6 @@ public class BasicAuthServiceGenerator {
                 client.sslSocketFactory(socketFactory, trustManager);
                 client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
             } else {
-                final SSLContext sslContext = SSLContext.getInstance("TLS");
                 //sslContext.init(null, new TrustManager[] {trustManager}, new java.security.SecureRandom());
                 // Create an ssl socket factory with our all-trusting manager
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
