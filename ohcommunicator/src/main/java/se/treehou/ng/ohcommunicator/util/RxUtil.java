@@ -4,20 +4,23 @@ package se.treehou.ng.ohcommunicator.util;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.functions.Function;
 
 public class RxUtil {
     private RxUtil(){}
 
-    public static Func1<Observable<? extends Throwable>, Observable<?>> RetryOnTimeout = new Func1<Observable<? extends Throwable>, Observable<?>>() {
+    public static Function<Observable<? extends Throwable>, Observable<?>> RetryOnTimeout = new Function<Observable<? extends Throwable>, Observable<?>>() {
+
         @Override
-        public Observable<?> call(Observable<? extends Throwable> errors) {
-            return errors.flatMap(new Func1<Throwable, Observable<?>>() {
+        public Observable<?> apply(Observable<? extends Throwable> errors) throws Exception {
+            return errors.flatMap(new Function<Throwable, ObservableSource<?>>() {
                 @Override
-                public Observable<?> call(Throwable error) {
+                public ObservableSource<?> apply(Throwable error) throws Exception {
                     if (error instanceof SocketTimeoutException) {
-                        return Observable.just(null);
+                        return Observable.just(new Object());
                     }
                     return Observable.error(error);
                 }
@@ -33,13 +36,14 @@ public class RxUtil {
      * @param <T>
      * @return observable stream which automatically resubscribes on finish
      */
-    public static final <T> Observable.Transformer<T, T> repeatWithDelay(final int delay, final TimeUnit unit){
-        return new Observable.Transformer<T, T>() {
+    public static final <T> ObservableTransformer<T, T> repeatWithDelay(final int delay, final TimeUnit unit){
+        return new ObservableTransformer<T, T>() {
+
             @Override
-            public Observable<T> call(Observable<T> observable) {
-                return observable.repeatWhen(new Func1<Observable<? extends Void>, Observable<?>>() {
+            public ObservableSource<T> apply(Observable<T> observable) {
+                return observable.repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
                     @Override
-                    public Observable<?> call(Observable<? extends Void> observable) {
+                    public ObservableSource<?> apply(Observable<Object> observable) throws Exception {
                         return observable.delay(delay, unit);
                     }
                 });

@@ -18,7 +18,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.internal.platform.Platform;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 import se.treehou.ng.ohcommunicator.util.ConnectorUtil;
@@ -80,7 +80,7 @@ public class BasicAuthServiceGenerator {
                     .baseUrl(url)
                     .addConverterFactory(ScalarsConverterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create(GsonHelper.createGsonBuilder()))
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create());
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create());
             retrofit = builder.build();
         } catch (Exception e) {
             Log.e(TAG, "Failed to generate service", e);
