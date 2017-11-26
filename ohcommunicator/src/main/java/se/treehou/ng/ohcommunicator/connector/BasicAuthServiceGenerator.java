@@ -8,7 +8,10 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Credentials;
@@ -35,7 +38,15 @@ public class BasicAuthServiceGenerator {
         return createService(serviceClass, usernarname, password, url, -1);
     }
 
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, SSLContext sslContext, X509TrustManager trustManager, HostnameVerifier verifier) {
+        return createService(serviceClass, usernarname, password, url, -1, sslContext , trustManager, verifier);
+    }
+
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout) {
+        return createService(serviceClass, usernarname, password, url, -1, null, null, null);
+    }
+
+    public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout, SSLContext sslContext, X509TrustManager trustManager, HostnameVerifier verifier) {
 
         OkHttpClient.Builder client = new OkHttpClient.Builder();
 
@@ -61,10 +72,18 @@ public class BasicAuthServiceGenerator {
         }
 
         try {
-            SSLSocketFactory socketFactory = TrustModifier.createFactory();
-            X509TrustManager trustManager = Platform.get().trustManager(socketFactory);
-            client.sslSocketFactory(socketFactory, trustManager);
-            client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
+            if(trustManager == null) {
+                SSLSocketFactory socketFactory = TrustModifier.createFactory();
+                trustManager = Platform.get().trustManager(socketFactory);
+                client.sslSocketFactory(socketFactory, trustManager);
+                client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
+            } else {
+                //sslContext.init(null, new TrustManager[] {trustManager}, new java.security.SecureRandom());
+                // Create an ssl socket factory with our all-trusting manager
+                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                client.sslSocketFactory(sslSocketFactory, trustManager);
+                client.hostnameVerifier(verifier);
+            }
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();
         }

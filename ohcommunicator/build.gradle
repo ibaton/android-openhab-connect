@@ -5,7 +5,7 @@ group='com.github.ibaton'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '27.0.1'
 
     defaultConfig {
         minSdkVersion 14
@@ -38,12 +38,16 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'javax.jmdns:jmdns:3.4.1'
+    compile 'org.jmdns:jmdns:3.5.3'
     compile 'com.squareup.okhttp3:okhttp:3.8.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
