@@ -8,11 +8,10 @@ android {
     buildToolsVersion '27.0.1'
 
     defaultConfig {
-        minSdkVersion 12
+        minSdkVersion 14
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -48,13 +47,13 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'org.jmdns:jmdns:3.5.3'
-    compile 'com.squareup.okhttp3:okhttp:3.7.0'
+    compile 'com.squareup.okhttp3:okhttp:3.8.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.3.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.6'
-    compile 'commons-io:commons-io:2.5'
+    compile 'com.android.support:appcompat-v7:27.0.1'
+    compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.loopj.android:android-async-http:1.4.9'
 }

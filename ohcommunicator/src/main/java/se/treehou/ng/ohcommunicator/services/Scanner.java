@@ -20,10 +20,14 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
+import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.functions.Cancellable;
 import se.treehou.ng.ohcommunicator.connector.models.OHServer;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHCallback;
 import se.treehou.ng.ohcommunicator.services.callbacks.OHResponse;
@@ -63,14 +67,15 @@ public class Scanner implements IScanner {
             }
 
             @Override
-            public void serviceRemoved(ServiceEvent event) {}
+            public void serviceRemoved(ServiceEvent event) {
+            }
 
             @Override
             public void serviceResolved(ServiceEvent event) {
 
                 String[] serviceUrls = event.getInfo().getURLs();
                 String url = serviceUrls[0];
-                if (url == null){
+                if (url == null) {
                     return;
                 }
 
@@ -90,7 +95,7 @@ public class Scanner implements IScanner {
     /**
      * start scanning for new servers.
      */
-    private void startScan(){
+    private void startScan() {
         context.registerReceiver(broadcastReceiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
         ThreadPool.instance().submit(new Runnable() {
             @Override
@@ -101,18 +106,18 @@ public class Scanner implements IScanner {
         });
     }
 
-    private void updateZeroconfListener(){
+    private void updateZeroconfListener() {
         ThreadPool.instance().submit(new Runnable() {
             @Override
             public void run() {
 
-                if(lock == null) {
+                if (lock == null) {
                     lock = wifi.createMulticastLock("JmdnsLock");
                     lock.setReferenceCounted(true);
                     lock.acquire();
                 }
 
-                if(dnsService != null){
+                if (dnsService != null) {
                     dnsService.unregisterAllServices();
                     try {
                         dnsService.close();
@@ -159,64 +164,67 @@ public class Scanner implements IScanner {
 
     /**
      * Get rx listener for subscriber.
+     *
      * @return rx zeroconf listener
      */
     @Override
-    public Observable<OHServer> registerRx(){
-        return Observable.create(new Observable.OnSubscribe<OHServer>() {
+    public Observable<OHServer> registerRx() {
+        return Observable.create(new ObservableOnSubscribe<OHServer>() {
             @Override
-            public void call(final Subscriber<? super OHServer> subscriber) {
-                if(subscriber.isUnsubscribed()){
+            public void subscribe(final ObservableEmitter<OHServer> emitter) throws Exception {
+                if (emitter.isDisposed()) {
                     return;
                 }
 
                 final OHCallback<List<OHServer>> scannerCallback = new OHCallback<List<OHServer>>() {
                     @Override
                     public void onUpdate(OHResponse<List<OHServer>> items) {
-                        for(OHServer server : items.body()){
-                            subscriber.onNext(server);
+                        for (OHServer server : items.body()) {
+                            emitter.onNext(server);
                         }
                     }
 
                     @Override
-                    public void onError() {}
+                    public void onError() {
+                    }
                 };
 
                 registerServerDiscoveryListener(scannerCallback);
-                subscriber.add(Subscriptions.create(new Action0() {
+                emitter.setCancellable(new Cancellable() {
                     @Override
-                    public void call() {
+                    public void cancel() throws Exception {
                         deregisterServerDiscoveryListener(scannerCallback);
                     }
-                }));
+                });
             }
         });
     }
 
-    public void registerServerDiscoveryListener(OHCallback<List<OHServer>> listener){
-        if(listener == null){
+    public void registerServerDiscoveryListener(OHCallback<List<OHServer>> listener) {
+        if (listener == null) {
             return;
         }
 
         serverFound(servers, listener);
         discoveryListeners.add(listener);
-        if(discoveryListeners.size() >= 1){
+        if (discoveryListeners.size() >= 1) {
             startScan();
         }
     }
 
-    public void deregisterServerDiscoveryListener(OHCallback<List<OHServer>> listener){
+    public void deregisterServerDiscoveryListener(OHCallback<List<OHServer>> listener) {
         discoveryListeners.remove(listener);
-        if(discoveryListeners.size() <= 0){
+        if (discoveryListeners.size() <= 0) {
             stopScan();
         }
     }
 
     /**
      * Update listeners that servers have been found
+     *
      * @param servers
      */
-    public void serverFound(Set<OHServer> servers){
+    public void serverFound(Set<OHServer> servers) {
         List<OHServer> serverList = new ArrayList<>(servers);
         for (OHCallback<List<OHServer>> listener : discoveryListeners) {
             serverFound(serverList, listener);
@@ -225,17 +233,19 @@ public class Scanner implements IScanner {
 
     /**
      * Update listeners that servers have been found
+     *
      * @param servers
      */
-    public void serverFound(List<OHServer> servers, OHCallback<List<OHServer>> listener){
+    public void serverFound(List<OHServer> servers, OHCallback<List<OHServer>> listener) {
         listener.onUpdate(new OHResponse.Builder<List<OHServer>>(new ArrayList<>(servers)).fromCache(false).build());
     }
 
     /**
      * Update listeners that servers have been found
+     *
      * @param servers
      */
-    public void serverFound(Set<OHServer> servers, OHCallback<List<OHServer>> listener){
+    public void serverFound(Set<OHServer> servers, OHCallback<List<OHServer>> listener) {
         listener.onUpdate(new OHResponse.Builder<List<OHServer>>(new ArrayList<>(servers)).fromCache(false).build());
     }
 }
