@@ -26,8 +26,8 @@ public class OHWidget {
     private String icon;
     private String label;
 
-    private String labelcolor;
-    private String valuecolor;
+    private String labelColor;
+    private String valueColor;
 
     // Used for charts
     private String period;
@@ -261,32 +261,32 @@ public class OHWidget {
      * Get the label color for widget
      * @return label color
      */
-    public String getLabelcolor() {
-        return labelcolor;
+    public String getLabelColor() {
+        return labelColor;
     }
 
     /**
      * Set label color for widget
      * @param labelcolor
      */
-    public void setLabelcolor(String labelcolor) {
-        this.labelcolor = labelcolor;
+    public void setLabelColor(String labelcolor) {
+        this.labelColor = labelcolor;
     }
 
     /**
      * Get the value color for widget
      * @return value color
      */
-    public String getValuecolor() {
-        return valuecolor;
+    public String getValueColor() {
+        return valueColor;
     }
 
     /**
      * Set value color for widget
-     * @param valuecolor
+     * @param valueColor
      */
-    public void setValuecolor(String valuecolor) {
-        this.valuecolor = valuecolor;
+    public void setValueColor(String valueColor) {
+        this.valueColor = valueColor;
     }
 
     @Override
@@ -304,8 +304,8 @@ public class OHWidget {
         if (type != null ? !type.equals(widget1.type) : widget1.type != null) return false;
         if (icon != null ? !icon.equals(widget1.icon) : widget1.icon != null) return false;
         if (label != null ? !label.equals(widget1.label) : widget1.label != null) return false;
-        if (labelcolor != null ? !labelcolor.equals(widget1.labelcolor) : widget1.labelcolor != null) return false;
-        if (valuecolor != null ? !valuecolor.equals(widget1.valuecolor) : widget1.valuecolor != null) return false;
+        if (labelColor != null ? !labelColor.equals(widget1.labelColor) : widget1.labelColor != null) return false;
+        if (valueColor != null ? !valueColor.equals(widget1.valueColor) : widget1.valueColor != null) return false;
         if (period != null ? !period.equals(widget1.period) : widget1.period != null) return false;
         if (service != null ? !service.equals(widget1.service) : widget1.service != null)
             return false;
@@ -326,8 +326,8 @@ public class OHWidget {
         result = 31 * result + (label != null ? label.hashCode() : 0);
         result = 31 * result + (period != null ? period.hashCode() : 0);
         result = 31 * result + (service != null ? service.hashCode() : 0);
-        result = 31 * result + (labelcolor != null ? labelcolor.hashCode() : 0);
-        result = 31 * result + (valuecolor != null ? valuecolor.hashCode() : 0);
+        result = 31 * result + (labelColor != null ? labelColor.hashCode() : 0);
+        result = 31 * result + (valueColor != null ? valueColor.hashCode() : 0);
         result = 31 * result + minValue;
         result = 31 * result + maxValue;
         result = 31 * result + (step != +0.0f ? Float.floatToIntBits(step) : 0);

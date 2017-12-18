@@ -57,6 +57,14 @@ public class WidgetDeserializer implements JsonDeserializer<List<OHWidget>> {
             widget.setMaxValue(jObject.get("maxValue").getAsInt());
         }
 
+        if(jObject.has("labelcolor")) {
+            widget.setLabelColor(jObject.get("labelcolor").getAsString());
+        }
+
+        if(jObject.has("valuecolor")) {
+            widget.setValueColor(jObject.get("valuecolor").getAsString());
+        }
+
         if(jObject.has("step") && jObject.get("step") != null){
             try {
                 widget.setStep(jObject.get("step").getAsFloat());
