@@ -13,6 +13,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import okhttp3.ResponseBody;
@@ -20,6 +21,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import se.treehou.ng.ohcommunicator.connector.BasicAuthServiceGenerator;
+import se.treehou.ng.ohcommunicator.connector.MyOpenHabService;
 import se.treehou.ng.ohcommunicator.connector.OpenHabService;
 import se.treehou.ng.ohcommunicator.connector.models.OHBinding;
 import se.treehou.ng.ohcommunicator.connector.models.OHInboxItem;
@@ -77,6 +79,10 @@ public class Connector implements IConnector {
         return BasicAuthServiceGenerator.createService(OpenHabService.class, server.getUsername(), server.getPassword(), url, LONG_POLLING_TIMEOUT, sslContext, trustModifier, hostnameVerifier);
     }
 
+    private static MyOpenHabService generateMyOpenHabService(OHServer server, String url) throws IllegalArgumentException {
+        return BasicAuthServiceGenerator.createService(MyOpenHabService.class, server.getUsername(), server.getPassword(), url);
+    }
+
     @Override
     public IServerHandler getServerHandler(OHServer server) {
         return new ServerHandler(server, context, sslContext, trustManager, hostnameVerifier);
@@ -91,6 +97,7 @@ public class Connector implements IConnector {
         private HostnameVerifier hostnameVerifier;
 
         private OpenHabService openHabService;
+        private MyOpenHabService myOpenHabService;
 
         public ServerHandler(OHServer server, Context context, SSLContext sslContext, X509TrustManager trustManager, HostnameVerifier hostnameVerifier) {
             this.server = server;
@@ -101,6 +108,7 @@ public class Connector implements IConnector {
 
             try {
                 openHabService = generateOpenHabService(server, getUrl(), sslContext, trustManager, hostnameVerifier);
+                myOpenHabService = generateMyOpenHabService(server, getUrl());
             } catch (Exception e){
                 Log.e(TAG, "Error while generating server", e);
                 openHabService = null;
@@ -149,6 +157,11 @@ public class Connector implements IConnector {
             if (!validSetup()) return Observable.empty();
 
             return service.listBindingsRx();
+        }
+
+        @Override
+        public Observable<String> registerGcm(String deviceId, String deviceModel, String regId) {
+            return myOpenHabService.registerGCM(deviceId, deviceModel, regId);
         }
 
         /**

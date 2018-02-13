@@ -62,7 +62,7 @@ public interface IServerHandler {
     /**
      * Request updates for page rx
      *
-     * @param page   the page to fetch updates for
+     * @param page the page to fetch updates for
      * @return observable returning updates for page.
      */
     Observable<OHLinkedPage> requestPageUpdatesRx(OHLinkedPage page);
@@ -143,7 +143,14 @@ public interface IServerHandler {
 
     /**
      * Request things from server.
+     *
      * @return observable returning things.
      */
     Observable<List<OHThing>> requestThingsRx();
+
+
+    /**
+     * Register to receive gcm events
+     */
+    Observable<String> registerGcm(String deviceId, String deviceModel, String regId);
 }
