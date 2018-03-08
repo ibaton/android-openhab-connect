@@ -107,37 +107,34 @@ public class Scanner implements IScanner {
     }
 
     private void updateZeroconfListener() {
-        ThreadPool.instance().submit(new Runnable() {
-            @Override
-            public void run() {
+        ThreadPool.instance().submit(() -> {
 
-                if (lock == null) {
-                    lock = wifi.createMulticastLock("JmdnsLock");
-                    lock.setReferenceCounted(true);
-                    lock.acquire();
-                }
+            if (lock == null) {
+                lock = wifi.createMulticastLock("JmdnsLock");
+                lock.setReferenceCounted(true);
+                lock.acquire();
+            }
 
-                if (dnsService != null) {
-                    dnsService.unregisterAllServices();
-                    try {
-                        dnsService.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
+            if (dnsService != null) {
+                dnsService.unregisterAllServices();
                 try {
-                    WifiInfo wifiinfo = wifi.getConnectionInfo();
-                    int intaddr = wifiinfo.getIpAddress();
-                    byte[] byteaddr = BigInteger.valueOf(intaddr).toByteArray();
-                    InetAddress addr = InetAddress.getByAddress(byteaddr);
-
-                    dnsService = JmDNS.create(addr);
-                    dnsService.addServiceListener(SERVICE_TYPE, serviceListener);
-                    dnsService.addServiceListener(SERVICE_TYPE_SSL, serviceListener);
+                    dnsService.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+
+            try {
+                WifiInfo wifiinfo = wifi.getConnectionInfo();
+                int intaddr = wifiinfo.getIpAddress();
+                byte[] byteaddr = BigInteger.valueOf(intaddr).toByteArray();
+                InetAddress addr = InetAddress.getByAddress(byteaddr);
+
+                dnsService = JmDNS.create(addr);
+                dnsService.addServiceListener(SERVICE_TYPE, serviceListener);
+                dnsService.addServiceListener(SERVICE_TYPE_SSL, serviceListener);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -146,19 +143,18 @@ public class Scanner implements IScanner {
      * Stop scanning for new servers.
      */
     private void stopScan() {
-        context.unregisterReceiver(broadcastReceiver);
+        try {
+            context.unregisterReceiver(broadcastReceiver);
+        } catch (Exception ignore) {}
         servers.clear();
-        ThreadPool.instance().submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    dnsService.unregisterAllServices();
-                    dnsService.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (lock != null) lock.release();
+        ThreadPool.instance().submit(() -> {
+            try {
+                dnsService.unregisterAllServices();
+                dnsService.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            if (lock != null) lock.release();
         });
     }
 
