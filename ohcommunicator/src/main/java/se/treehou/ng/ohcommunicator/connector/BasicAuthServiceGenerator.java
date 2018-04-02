@@ -5,13 +5,15 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Credentials;
@@ -19,7 +21,6 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.internal.platform.Platform;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -32,14 +33,15 @@ public class BasicAuthServiceGenerator {
     private static final String TAG = BasicAuthServiceGenerator.class.getSimpleName();
 
     // No need to instantiate this class.
-    private BasicAuthServiceGenerator() {}
+    private BasicAuthServiceGenerator() {
+    }
 
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url) {
         return createService(serviceClass, usernarname, password, url, -1);
     }
 
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, SSLContext sslContext, X509TrustManager trustManager, HostnameVerifier verifier) {
-        return createService(serviceClass, usernarname, password, url, -1, sslContext , trustManager, verifier);
+        return createService(serviceClass, usernarname, password, url, -1, sslContext, trustManager, verifier);
     }
 
     public static <S> S createService(Class<S> serviceClass, final String usernarname, final String password, String url, int timeout) {
@@ -50,11 +52,11 @@ public class BasicAuthServiceGenerator {
 
         OkHttpClient.Builder client = new OkHttpClient.Builder();
 
-        if(timeout > 0){
+        if (timeout > 0) {
             client.readTimeout(timeout, TimeUnit.MILLISECONDS);
         }
 
-        if(!TextUtils.isEmpty(usernarname) && !TextUtils.isEmpty(password)) {
+        if (!TextUtils.isEmpty(usernarname) && !TextUtils.isEmpty(password)) {
             client.addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Interceptor.Chain chain) throws IOException {
@@ -72,9 +74,16 @@ public class BasicAuthServiceGenerator {
         }
 
         try {
-            if(trustManager == null) {
+            if (trustManager == null) {
+                try {
+                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    tmf.init((KeyStore) null);
+                    trustManager = (X509TrustManager) tmf.getTrustManagers()[0];
+                } catch (KeyStoreException e) {
+                    e.printStackTrace();
+                }
+
                 SSLSocketFactory socketFactory = TrustModifier.createFactory();
-                trustManager = Platform.get().trustManager(socketFactory);
                 client.sslSocketFactory(socketFactory, trustManager);
                 client.hostnameVerifier(new TrustModifier.NullHostNameVerifier());
             } else {
@@ -88,7 +97,7 @@ public class BasicAuthServiceGenerator {
             e.printStackTrace();
         }
 
-        if(!ConnectorUtil.isValidServerUrl(url)){
+        if (!ConnectorUtil.isValidServerUrl(url)) {
             url = "http://127.0.0.1:8080";
         }
 
