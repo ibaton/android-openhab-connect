@@ -44,16 +44,16 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    testImplementation 'junit:junit:4.12'
-    implementation 'org.jmdns:jmdns:3.5.3'
-    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
-    implementation 'com.squareup.retrofit2:converter-scalars:2.3.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.android.support:appcompat-v7:27.1.0'
-    implementation 'io.reactivex.rxjava2:rxkotlin:2.1.0'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.loopj.android:android-async-http:1.4.9'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile 'org.jmdns:jmdns:3.5.3'
+    compile 'com.squareup.okhttp3:okhttp:3.10.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    compile 'com.squareup.retrofit2:retrofit:2.4.0'
+    compile 'com.android.support:appcompat-v7:27.1.0'
+    compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
+    compile 'com.google.code.gson:gson:2.8.2'
+    compile 'com.loopj.android:android-async-http:1.4.9'
 }
