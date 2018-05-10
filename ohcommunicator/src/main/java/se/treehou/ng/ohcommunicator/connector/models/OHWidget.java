@@ -2,6 +2,8 @@ package se.treehou.ng.ohcommunicator.connector.models;
 
 import java.util.List;
 
+import io.reactivex.annotations.Nullable;
+
 public class OHWidget {
 
     public static final String WIDGET_TYPE_DUMMY           = "Dummy";
@@ -32,6 +34,8 @@ public class OHWidget {
     // Used for charts
     private String period;
     private String service;
+
+    private Integer height;
 
     private int minValue=0;
     private int maxValue=100;
@@ -289,6 +293,24 @@ public class OHWidget {
         this.valueColor = valueColor;
     }
 
+
+    /**
+     * Get height in rows
+     * @return height in rows
+     */
+    @Nullable
+    public Integer getHeight() {
+        return height;
+    }
+
+    /**
+     * Set height in rows
+     * @param height in rows
+     */
+    public void setHeight(@Nullable Integer height) {
+        this.height = height;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -307,6 +329,7 @@ public class OHWidget {
         if (labelColor != null ? !labelColor.equals(widget1.labelColor) : widget1.labelColor != null) return false;
         if (valueColor != null ? !valueColor.equals(widget1.valueColor) : widget1.valueColor != null) return false;
         if (period != null ? !period.equals(widget1.period) : widget1.period != null) return false;
+        if (height != null ? !height.equals(widget1.height) : widget1.height != null) return false;
         if (service != null ? !service.equals(widget1.service) : widget1.service != null)
             return false;
         if (url != null ? !url.equals(widget1.url) : widget1.url != null) return false;
